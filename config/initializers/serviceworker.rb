@@ -1,10 +1,15 @@
 Rails.application.configure do
-  config.serviceworker.routes.draw do
+
     # map to assets implicitly
-    match "/serviceworker.js",
-          headers: { "Cache-Control" => "public, max-age=8000, s-max-age=20000, no-cache" }
-    match "/manifest.json",
-          headers: { "Cache-Control" => "public, max-age=8000, s-max-age=20000, no-cache" }
+  config.serviceworker.routes.draw do
+    match("/serviceworker.js", headers: {
+      "Cache-Control" => "public, max-age=8000, s-max-age=20000, no-cache",
+    })
+    match("/manifest.json", headers: {
+      "Cache-Control" => "public, max-age=8000, s-max-age=20000, no-cache",
+    })
+  end
+
     # Examples
     #
     # map to a named asset explicitly
@@ -23,7 +28,6 @@ Rails.application.configure do
     #
     # anonymous glob exposes `paths` variable for interpolation
     # match "/*/serviceworker.js" => "%{paths}/serviceworker.js"
-  end
   config.serviceworker.headers["Surrogate-Control"] = "max-age=20000"
   config.serviceworker.headers["Cache-Control"] = "public, s-maxage=20000, max-age=0, no-cache"
 end

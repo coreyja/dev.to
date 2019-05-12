@@ -1,6 +1,5 @@
 class MembershipMailer < ApplicationMailer
-  default from: "DEV Members <members@dev.to>"
-
+  default(from: "DEV Members <members@dev.to>")
   def new_membership_subscription_email(user, subscription_type)
     @user = user
     @subscription_type = subscription_type

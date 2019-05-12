@@ -21,7 +21,7 @@ class CommentDashboard < Administrate::BaseDashboard
     ancestry: Field::String,
     id_code: Field::String,
     score: Field::Number,
-    deleted: Field::Boolean
+    deleted: Field::Boolean,
   }.freeze
 
   # COLLECTION_ATTRIBUTES
@@ -29,39 +29,16 @@ class CommentDashboard < Administrate::BaseDashboard
   #
   # By default, it's limited to four items to reduce clutter on index pages.
   # Feel free to add, remove, or rearrange items.
-  COLLECTION_ATTRIBUTES = %i[
-    id
-    user
-    body_markdown
-    reactions
-  ].freeze
+  COLLECTION_ATTRIBUTES = %i[id user body_markdown reactions].freeze
 
   # SHOW_PAGE_ATTRIBUTES
   # an array of attributes that will be displayed on the model's show page.
-  SHOW_PAGE_ATTRIBUTES = %i[
-    commentable
-    user
-    reactions
-    id
-    body_markdown
-    edited
-    created_at
-    updated_at
-    ancestry
-    id_code
-    score
-    deleted
-  ].freeze
+  SHOW_PAGE_ATTRIBUTES = %i[commentable user reactions id body_markdown edited created_at updated_at ancestry id_code score deleted].freeze
 
   # FORM_ATTRIBUTES
   # an array of attributes that will be displayed
   # on the model's form (`new` and `edit`) pages.
-  FORM_ATTRIBUTES = %i[
-    user_id
-    body_markdown
-    score
-    deleted
-  ].freeze
+  FORM_ATTRIBUTES = %i[user_id body_markdown score deleted].freeze
 
   # Overwrite this method to customize how comments are displayed
   # across all pages of the admin dashboard.

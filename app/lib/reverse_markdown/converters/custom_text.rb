@@ -13,9 +13,10 @@ module ReverseMarkdown
 
       def treat_empty(node)
         parent = node.parent.name.to_sym
-        if %i[ol ul].include?(parent) # Otherwise the identation is broken
+
+        if %i[ol ul].include?(parent)
           ""
-        elsif node.text == " " # Regular whitespace text node
+        elsif node.text == " "
           " "
         else
           ""
@@ -46,11 +47,11 @@ module ReverseMarkdown
 
       def preserve_keychars_within_backticks(text)
         text.gsub(/`.*?`/) do |match|
-          match.gsub('\_', "_").gsub('\*', "*")
+          match.gsub("\\_", "_").gsub("\\*", "*")
         end
       end
     end
 
-    register :text, CustomText.new
+    register(:text, CustomText.new)
   end
 end

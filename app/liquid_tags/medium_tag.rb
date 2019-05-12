@@ -1,9 +1,8 @@
 class MediumTag < LiquidTagBase
-  include ApplicationHelper
-  include ActionView::Helpers::TagHelper
-  include InlineSvg::ActionView::Helpers
-  attr_reader :response
-
+  include(ApplicationHelper)
+  include(ActionView::Helpers::TagHelper)
+  include(InlineSvg::ActionView::Helpers)
+  attr_reader(:response)
   def initialize(_tag_name, url, _tokens)
     @response = parse_url_for_medium_article(url)
   end
@@ -20,19 +19,18 @@ class MediumTag < LiquidTagBase
           <div class='ltag__link__content'>
             <h2>#{response[:title]}</h2>
             <h3>#{response[:author]}</h3>
-            #{inline_svg('medium_icon.svg', size: '27px*27px')} Medium
+            #{inline_svg("medium_icon.svg", size: "27px*27px")} Medium
             <div class='ltag__link__taglist'>#{response[:reading_time]}</div>
           </div>
         </a>
       </div>
-    HTML
+HTML
   end
 
   private
 
   def parse_url_for_medium_article(url)
     sanitized_article_url = ActionController::Base.helpers.strip_tags(url).strip
-
     MediumArticleRetrievalService.new(sanitized_article_url).call
   rescue StandardError
     raise_error

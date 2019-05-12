@@ -1,67 +1,84 @@
 class Organization < ApplicationRecord
-  include CloudinaryHelper
-
+  include(CloudinaryHelper)
   acts_as_followable
-
-  has_many :job_listings
-  has_many :users
-  has_many :api_secrets, through: :users
-  has_many :articles
-  has_many :collections
-  has_many :display_ads
-  has_many :notifications
-  has_many :credits
-
-  validates :name, :summary, :url, :profile_image, presence: true
-  validates :name,
-            length: { maximum: 50 }
-  validates :summary,
-            length: { maximum: 250 }
-  validates :tag_line,
-            length: { maximum: 60 }
-  validates :jobs_email, email: true, allow_blank: true
-  validates :text_color_hex, format: /\A#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})\z/, allow_blank: true
-  validates :bg_color_hex, format: /\A#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})\z/, allow_blank: true
-  validates :slug,
-            presence: true,
-            uniqueness: { case_sensitive: false },
-            format: { with: /\A[a-zA-Z0-9\-_]+\Z/ },
-            length: { in: 2..18 },
-            exclusion: { in: ReservedWords.all,
-                         message: "%{value} is reserved." }
-  validates :url, url: { allow_blank: true, no_local: true, schemes: %w[https http] }
-  validates :secret, uniqueness: { allow_blank: true }
-  validates :location, :email, :company_size, length: { maximum: 64 }
-  validates :company_size, format: { with: /\A\d+\z/,
-                                     message: "Integer only. No sign allowed.",
-                                     allow_blank: true }
-  validates :tech_stack, :story, length: { maximum: 640 }
-  validates :cta_button_url,
-            url: { allow_blank: true, no_local: true, schemes: %w[https http] }
-  validates :cta_button_text, length: { maximum: 20 }
-  validates :cta_body_markdown, length: { maximum: 256 }
-  before_save :remove_at_from_usernames
-  after_save  :bust_cache
-  before_save :generate_secret
-  before_save :update_articles
-  before_validation :downcase_slug
-  before_validation :check_for_slug_change
-  before_validation :evaluate_markdown
-
-  validate :unique_slug_including_users
-
-  mount_uploader :profile_image, ProfileImageUploader
-  mount_uploader :nav_image, ProfileImageUploader
-  mount_uploader :dark_nav_image, ProfileImageUploader
-
-  alias_attribute :username, :slug
-  alias_attribute :old_username, :old_slug
-  alias_attribute :old_old_username, :old_old_slug
-  alias_attribute :website_url, :url
-
+  has_many(:job_listings)
+  has_many(:users)
+  has_many(:api_secrets, through: :users)
+  has_many(:articles)
+  has_many(:collections)
+  has_many(:display_ads)
+  has_many(:notifications)
+  has_many(:credits)
+  validates(:name, :summary, :url, :profile_image, presence: true)
+  validates(:name, length: {
+    maximum: 50,
+  })
+  validates(:summary, length: {
+    maximum: 250,
+  })
+  validates(:tag_line, length: {
+    maximum: 60,
+  })
+  validates(:jobs_email, email: true, allow_blank: true)
+  validates(:text_color_hex, format: /\A#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})\z/, allow_blank: true)
+  validates(:bg_color_hex, format: /\A#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})\z/, allow_blank: true)
+  validates(:slug, presence: true, uniqueness: {
+    case_sensitive: false,
+  }, format: {
+    with: /\A[a-zA-Z0-9\-_]+\Z/,
+  }, length: {
+    in: 2..18,
+  }, exclusion: {
+    in: ReservedWords.all,
+    message: "%{value} is reserved.",
+  })
+  validates(:url, url: {
+    allow_blank: true,
+    no_local: true,
+    schemes: %w[https http],
+  })
+  validates(:secret, uniqueness: {
+    allow_blank: true,
+  })
+  validates(:location, :email, :company_size, length: {
+    maximum: 64,
+  })
+  validates(:company_size, format: {
+    with: /\A\d+\z/,
+    message: "Integer only. No sign allowed.",
+    allow_blank: true,
+  })
+  validates(:tech_stack, :story, length: {
+    maximum: 640,
+  })
+  validates(:cta_button_url, url: {
+    allow_blank: true,
+    no_local: true,
+    schemes: %w[https http],
+  })
+  validates(:cta_button_text, length: {
+    maximum: 20,
+  })
+  validates(:cta_body_markdown, length: {
+    maximum: 256,
+  })
+  before_save(:remove_at_from_usernames)
+  after_save(:bust_cache)
+  before_save(:generate_secret)
+  before_save(:update_articles)
+  before_validation(:downcase_slug)
+  before_validation(:check_for_slug_change)
+  before_validation(:evaluate_markdown)
+  validate(:unique_slug_including_users)
+  mount_uploader(:profile_image, ProfileImageUploader)
+  mount_uploader(:nav_image, ProfileImageUploader)
+  mount_uploader(:dark_nav_image, ProfileImageUploader)
+  alias_attribute(:username, :slug)
+  alias_attribute(:old_username, :old_slug)
+  alias_attribute(:old_old_username, :old_old_slug)
+  alias_attribute(:website_url, :url)
   def check_for_slug_change
     return unless slug_changed?
-
     self.old_old_slug = old_slug
     self.old_slug = slug_was
     articles.find_each { |a| a.update(path: a.path.gsub(slug_was, slug)) }
@@ -104,13 +121,12 @@ class Organization < ApplicationRecord
 
   def update_articles
     return unless saved_change_to_slug || saved_change_to_name || saved_change_to_profile_image
-
     cached_org_object = {
       name: name,
       username: username,
       slug: slug,
       profile_image_90: profile_image_90,
-      profile_image_url: profile_image_url
+      profile_image_url: profile_image_url,
     }
     articles.update(cached_organization: OpenStruct.new(cached_org_object))
   end
@@ -119,15 +135,17 @@ class Organization < ApplicationRecord
     cache_buster = CacheBuster.new
     cache_buster.bust("/#{slug}")
     begin
+
       articles.find_each do |article|
         cache_buster.bust(article.path)
       end
+
     rescue StandardError => e
       Rails.logger.error("Tag issue: #{e}")
     end
   end
-  handle_asynchronously :bust_cache
 
+  handle_asynchronously(:bust_cache)
   def unique_slug_including_users
     errors.add(:slug, "is taken.") if User.find_by(username: slug)
   end

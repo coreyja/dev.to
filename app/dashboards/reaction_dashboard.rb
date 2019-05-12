@@ -15,7 +15,7 @@ class ReactionDashboard < Administrate::BaseDashboard
     category: Field::String,
     points: Field::Number.with_options(decimals: 2),
     created_at: Field::DateTime,
-    updated_at: Field::DateTime
+    updated_at: Field::DateTime,
   }.freeze
 
   # COLLECTION_ATTRIBUTES
@@ -23,35 +23,16 @@ class ReactionDashboard < Administrate::BaseDashboard
   #
   # By default, it's limited to four items to reduce clutter on index pages.
   # Feel free to add, remove, or rearrange items.
-  COLLECTION_ATTRIBUTES = %i[
-    reactable
-    user
-    id
-    category
-  ].freeze
+  COLLECTION_ATTRIBUTES = %i[reactable user id category].freeze
 
   # SHOW_PAGE_ATTRIBUTES
   # an array of attributes that will be displayed on the model's show page.
-  SHOW_PAGE_ATTRIBUTES = %i[
-    reactable
-    user
-    user_id
-    id
-    category
-    points
-    created_at
-    updated_at
-  ].freeze
+  SHOW_PAGE_ATTRIBUTES = %i[reactable user user_id id category points created_at updated_at].freeze
 
   # FORM_ATTRIBUTES
   # an array of attributes that will be displayed
   # on the model's form (`new` and `edit`) pages.
-  FORM_ATTRIBUTES = %i[
-    reactable
-    user_id
-    category
-    points
-  ].freeze
+  FORM_ATTRIBUTES = %i[reactable user_id category points].freeze
 
   # Overwrite this method to customize how reactions are displayed
   # across all pages of the admin dashboard.

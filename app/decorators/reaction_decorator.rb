@@ -1,1 +1,2 @@
-class ReactionDecorator < ApplicationDecorator; end
+class ReactionDecorator < ApplicationDecorator
+end

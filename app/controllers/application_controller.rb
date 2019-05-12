@@ -1,8 +1,6 @@
 class ApplicationController < ActionController::Base
-  protect_from_forgery with: :exception, prepend: true
-
-  include Pundit
-
+  protect_from_forgery(with: :exception, prepend: true)
+  include(Pundit)
   def require_http_auth
     authenticate_or_request_with_http_basic do |username, password|
       username == ApplicationConfig["APP_NAME"] && password == ApplicationConfig["APP_PASSWORD"]
@@ -14,7 +12,7 @@ class ApplicationController < ActionController::Base
   end
 
   def not_authorized
-    render json: "Error: not authorized", status: :unauthorized
+    render(json: "Error: not authorized", status: :unauthorized)
     raise NotAuthorizedError, "Unauthorized"
   end
 
@@ -26,8 +24,12 @@ class ApplicationController < ActionController::Base
     return if current_user
 
     respond_to do |format|
-      format.html { redirect_to "/enter" }
-      format.json { render json: { error: "Please sign in" }, status: 401 }
+      format.html { redirect_to("/enter") }
+      format.json {
+        render(json: {
+          error: "Please sign in",
+        }, status: 401)
+      }
     end
   end
 
@@ -46,9 +48,10 @@ class ApplicationController < ActionController::Base
   def internal_navigation?
     params[:i] == "i"
   end
-  helper_method :internal_navigation?
 
+  helper_method(:internal_navigation?)
   def valid_request_origin?
+
     # This manually does what it was supposed to do on its own.
     # We were getting this issue:
     # HTTP Origin header (https://dev.to) didn't match request.base_url (http://dev.to)
@@ -59,9 +62,8 @@ class ApplicationController < ActionController::Base
     if request.referer.present?
       request.referer.start_with?(ApplicationConfig["APP_PROTOCOL"].to_s + ApplicationConfig["APP_DOMAIN"].to_s)
     else
-      logger.info "**REQUEST ORIGIN CHECK** #{request.origin}"
+      logger.info("**REQUEST ORIGIN CHECK** #{request.origin}")
       raise InvalidAuthenticityToken, NULL_ORIGIN_MESSAGE if request.origin == "null"
-
       request.origin.nil? || request.origin.gsub("https", "http") == request.base_url.gsub("https", "http")
     end
   end

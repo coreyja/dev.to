@@ -11,6 +11,7 @@ class PodcastFeed
   def get_episodes(podcast, num = 1000)
     rss = HTTParty.get(podcast.feed_url).body
     feed = RSS::Parser.parse(rss, false)
+
     feed.items.first(num).each do |item|
       if !existing_episode(item, podcast)
         create_new_episode(item, podcast)
@@ -18,6 +19,7 @@ class PodcastFeed
         update_existing_episode(ep, item, podcast)
       end
     end
+
     feed.items.size
   rescue StandardError => e
     Rails.logger.error(e)
@@ -38,6 +40,7 @@ class PodcastFeed
     rescue StandardError => e
       Rails.logger.error("not a valid date: #{e}")
     end
+
     ep.body = item.content_encoded || item.itunes_summary || item.description
     ep.save!
   end
@@ -51,25 +54,25 @@ class PodcastFeed
         Rails.logger.error("not a valid date: #{e}")
       end
     end
+
     update_media_url(episode, item)
   end
 
   def existing_episode(item, podcast)
+
     # presence returns nil if the query is an empty array, otherwise returns the array
-    PodcastEpisode.where(media_url: item.enclosure.url).presence ||
-      PodcastEpisode.where(title: item.title).presence ||
-      PodcastEpisode.where(guid: item.guid.to_s).presence ||
-      (podcast.unique_website_url? && PodcastEpisode.where(website_url: item.link).presence)
+    PodcastEpisode.where(media_url: item.enclosure.url).presence || PodcastEpisode.where(title: item.title).presence || PodcastEpisode.where(guid: item.guid.to_s).presence || (podcast.unique_website_url? && PodcastEpisode.where(website_url: item.link).presence)
   end
 
   def get_media_url(episode, item, podcast)
-    episode.media_url = if Rails.env.test? ||
-        HTTParty.head(item.enclosure.url.gsub(/http:/, "https:")).code == 200
-                          item.enclosure.url.gsub(/http:/, "https:")
-                        else
-                          item.enclosure.url
-                        end
+    episode.media_url = if Rails.env.test? || HTTParty.head(item.enclosure.url.gsub(/http:/, "https:")).code == 200
+      item.enclosure.url.gsub(/http:/, "https:")
+    else
+      item.enclosure.url
+    end
+
   rescue StandardError
+
     # podcast episode must have a media_url
     episode.media_url = item.enclosure.url
     podcast.update(status_notice: "This podcast may not be playable in the browser") if podcast.status_notice.empty?
@@ -78,10 +81,10 @@ class PodcastFeed
   def update_media_url(episode, item)
     if episode.media_url.include?("https")
       nil
-    elsif !episode.media_url.include?("https") &&
-        item.enclosure.url.include?("https")
+    elsif !episode.media_url.include?("https") && item.enclosure.url.include?("https")
       episode.update!(media_url: item.enclosure.url)
     end
+
   rescue StandardError
     message = "something went wrong with #{podcast.title}, #{episode.title} -- #{episode.media_url}"
     Rails.logger.error(message)

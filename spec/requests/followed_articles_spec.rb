@@ -1,23 +1,23 @@
 require "rails_helper"
 
-RSpec.describe "FollowedArticles", type: :request do
-  describe "GET followed articles index" do
+RSpec.describe("FollowedArticles", type: :request) do
+  describe("GET followed articles index") do
     let(:user) { create(:user) }
 
     before do
-      login_as user
+      login_as(user)
     end
 
-    it "returns empty articles array if not following anyone" do
-      get "/followed_articles"
-      expect(JSON.parse(response.body)["articles"]).to eq([])
+    it("returns empty articles array if not following anyone") do
+      get("/followed_articles")
+      expect(JSON.parse(response.body)["articles"]).to(eq([]))
     end
 
-    it "returns articles of tag I follow" do
+    it("returns articles of tag I follow") do
       article = create(:article)
       user.follow(Tag.find_by(name: article.tag_list.first))
-      get "/followed_articles"
-      expect(JSON.parse(response.body)["articles"].first["title"]).to eq(article.title)
+      get("/followed_articles")
+      expect(JSON.parse(response.body)["articles"].first["title"]).to(eq(article.title))
     end
   end
 end

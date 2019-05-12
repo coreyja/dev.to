@@ -42,7 +42,7 @@ class CommentPolicy < ApplicationPolicy
   private
 
   def user_is_comment_banned?
-    user.has_role? :comment_banned
+    user.has_role?(:comment_banned)
   end
 
   def user_is_author?

@@ -1,11 +1,26 @@
 module ArticlesHelper
   def sort_options
     [
-      ["Recently Created", "creation-desc"],
-      ["Recently Published", "published-desc"],
-      ["Most Views", "views-desc"],
-      ["Most Reactions", "reactions-desc"],
-      ["Most Comments", "comments-desc"],
+      [
+        "Recently Created",
+        "creation-desc",
+      ],
+      [
+        "Recently Published",
+        "published-desc",
+      ],
+      [
+        "Most Views",
+        "views-desc",
+      ],
+      [
+        "Most Reactions",
+        "reactions-desc",
+      ],
+      [
+        "Most Comments",
+        "comments-desc",
+      ],
     ]
   end
 
@@ -30,18 +45,11 @@ module ArticlesHelper
   end
 
   def should_show_updated_on?(article)
-    article.edited_at &&
-      article.published &&
-      !article.published_from_feed &&
-      article.published_at.next_day < article.edited_at
+    article.edited_at && article.published && !article.published_from_feed && article.published_at.next_day < article.edited_at
   end
 
   def should_show_crossposted_on?(article)
-    article.crossposted_at &&
-      article.published_from_feed &&
-      article.published &&
-      article.published_at &&
-      article.feed_source_url.present?
+    article.crossposted_at && article.published_from_feed && article.published && article.published_at && article.feed_source_url.present?
   end
 
   def get_host_without_www(url)

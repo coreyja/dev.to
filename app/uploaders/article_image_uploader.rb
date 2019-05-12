@@ -1,7 +1,7 @@
 class ArticleImageUploader < CarrierWave::Uploader::Base
-  include CarrierWave::BombShelter
-  # Adds resolution size limit to images of 4096x4096
+  include(CarrierWave::BombShelter)
 
+  # Adds resolution size limit to images of 4096x4096
   def store_dir
     "i/"
   end

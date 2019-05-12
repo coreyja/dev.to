@@ -1,12 +1,12 @@
 class SlideshareTag < LiquidTagBase
   def initialize(tag_name, key, tokens)
     super
-    @key    = validate key.strip
+    @key = validate(key.strip)
     @height = 450
   end
 
   def render(_context)
-    finalize_html <<-HTML
+    finalize_html(<<-HTML)
       <iframe
         src="//www.slideshare.net/slideshow/embed_code/key/#{@key}"
         alt="#{@key} on slideshare.net"
@@ -16,14 +16,13 @@ class SlideshareTag < LiquidTagBase
         scrolling="no"
         allowfullscreen>
       </iframe>
-    HTML
+HTML
   end
 
   private
 
   def validate(key)
     raise StandardError, "Invalid Slideshare Key" unless key.match?(/\A[a-zA-Z0-9]{14}\Z/)
-
     key
   end
 end

@@ -1,16 +1,16 @@
 class ClassifiedListingsController < ApplicationController
-  before_action :set_classified_listing, only: %i[edit update]
-  before_action :set_cache_control_headers, only: %i[index]
-  after_action :verify_authorized, only: %i[edit update]
-  before_action :authenticate_user!, only: %i[edit update new]
-
+  before_action(:set_classified_listing, only: %i[edit update])
+  before_action(:set_cache_control_headers, only: %i[index])
+  after_action(:verify_authorized, only: %i[edit update])
+  before_action(:authenticate_user!, only: %i[edit update new])
   def index
     @classified_listings = if params[:category].blank?
-                             ClassifiedListing.where(published: true).order("bumped_at DESC").limit(12)
-                           else
-                             []
-                           end
-    set_surrogate_key_header "classified-listings-#{params[:category]}"
+      ClassifiedListing.where(published: true).order("bumped_at DESC").limit(12)
+    else
+      []
+    end
+
+    set_surrogate_key_header("classified-listings-#{params[:category]}")
   end
 
   def show
@@ -23,7 +23,7 @@ class ClassifiedListingsController < ApplicationController
   end
 
   def edit
-    authorize @classified_listing
+    authorize(@classified_listing)
     @credits = current_user.credits.where(spent: false)
   end
 
@@ -40,7 +40,7 @@ class ClassifiedListingsController < ApplicationController
     elsif available_individual_credits.size >= @number_of_credits_needed
       create_listing(available_individual_credits)
     else
-      redirect_to "/credits"
+      redirect_to("/credits")
     end
   end
 
@@ -49,23 +49,25 @@ class ClassifiedListingsController < ApplicationController
     @classified_listing.published = true
     @classified_listing.organization_id = current_user.organization_id if @org
     return unless @classified_listing.save
-
     clear_listings_cache
     credits.limit(@number_of_credits_needed).update_all(spent: true)
     @classified_listing.index!
-    redirect_to "/listings"
+    redirect_to("/listings")
   end
 
   def update
-    authorize @classified_listing
+    authorize(@classified_listing)
     available_credits = current_user.credits.where(spent: false)
-    number_of_credits_needed = ClassifiedListing.cost_by_category(@classified_listing.category) # Bumping
+    number_of_credits_needed = ClassifiedListing.cost_by_category(@classified_listing.category)
+
     if params[:classified_listing][:action] == "bump"
       @classified_listing.bumped_at = Time.current
+
       if available_credits.size >= number_of_credits_needed
         @classified_listing.save
         available_credits.limit(number_of_credits_needed).update_all(spent: true)
       end
+
     elsif params[:classified_listing][:action] == "unpublish"
       @classified_listing.published = false
       @classified_listing.save
@@ -76,8 +78,9 @@ class ClassifiedListingsController < ApplicationController
       @classified_listing.tag_list = params[:classified_listing][:tag_list] if params[:classified_listing][:tag_list]
       @classified_listing.save
     end
+
     clear_listings_cache
-    redirect_to "/listings"
+    redirect_to("/listings")
   end
 
   private
@@ -91,6 +94,7 @@ class ClassifiedListingsController < ApplicationController
   def classified_listing_params
     accessible = %i[title body_markdown category tag_list contact_via_connect post_as_organization action]
     params.require(:classified_listing).permit(accessible)
+
   end
 
   def clear_listings_cache

@@ -6,6 +6,7 @@ class SoundcloudTag < LiquidTagBase
   end
 
   def render(_context)
+
     # src = build_src
     html = <<-HTML
       <iframe
@@ -16,7 +17,7 @@ class SoundcloudTag < LiquidTagBase
 		allow="autoplay"
 		src="https://w.soundcloud.com/player/?url=#{@link}&auto_play=false&color=%23000000&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true">
 	</iframe>
-    HTML
+HTML
     finalize_html(html)
   end
 
@@ -35,8 +36,7 @@ class SoundcloudTag < LiquidTagBase
   end
 
   def valid_link?(link)
-    (link =~ /\Ahttps:\/\/soundcloud\.com\/([a-zA-Z0-9\_\-]){3,25}\/(sets\/)?([a-zA-Z0-9\_\-]){3,255}\Z/)&.
-      zero?
+    (link =~ /\Ahttps:\/\/soundcloud\.com\/([a-zA-Z0-9\_\-]){3,25}\/(sets\/)?([a-zA-Z0-9\_\-]){3,255}\Z/)&.zero?
   end
 
   def raise_error

@@ -1,15 +1,13 @@
 class DevCommentTag < LiquidTagBase
   PARTIAL = "comments/liquid".freeze
-
   def initialize(_tag_name, id_code, _tokens)
     @comment = find_comment(id_code.strip)
   end
 
   def render(_context)
-    ActionController::Base.new.render_to_string(
-      partial: PARTIAL,
-      locals: { comment: @comment },
-    )
+    ActionController::Base.new.render_to_string(partial: PARTIAL, locals: {
+      comment: @comment,
+    })
   end
 
   def find_comment(id_code)

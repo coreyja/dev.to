@@ -16,20 +16,21 @@ require "zonebie/rspec"
 # it.
 #
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
-
 # This makes Rspec fail if there's any output
-RSpec::Matchers.define_negated_matcher :avoid_outputting, :output
+RSpec::Matchers.define_negated_matcher(:avoid_outputting, :output)
+
 ############
 RSpec.configure do |config|
+
   # makes example fail if there's any output
   # config.around do |ex|
   #   expect(&ex).to avoid_outputting.to_stdout.and avoid_outputting.to_stderr
   # end
-
   # rspec-expectations config goes here. You can use an alternate
   # assertion/expectation library such as wrong or the stdlib/minitest
   # assertions if you prefer.
-  config.expect_with :rspec do |expectations|
+  config.expect_with(:rspec) do |expectations|
+
     # This option will default to `true` in RSpec 4. It makes the `description`
     # and `failure_message` of custom matchers include text for helper methods
     # defined using `chain`, e.g.:
@@ -42,7 +43,8 @@ RSpec.configure do |config|
 
   # rspec-mocks config goes here. You can use an alternate test double
   # library (such as bogus or mocha) by changing the `mock_with` option here.
-  config.mock_with :rspec do |mocks|
+  config.mock_with(:rspec) do |mocks|
+
     # Prevents you from mocking or stubbing a method that does not exist on
     # a real object. This is generally recommended, and will default to
     # `true` in RSpec 4.
@@ -58,13 +60,12 @@ RSpec.configure do |config|
 
   # The settings below are suggested to provide a good initial experience
   # with RSpec, but feel free to customize to your heart's content.
-
   # This allows you to limit a spec run to individual examples or groups
   # you care about by tagging them with `:focus` metadata. When nothing
   # is tagged with `:focus`, all examples get run. RSpec also provides
   # aliases for `it`, `describe`, and `context` that include `:focus`
   # metadata: `fit`, `fdescribe` and `fcontext`, respectively.
-  config.filter_run_when_matching :focus
+  config.filter_run_when_matching(:focus)
 
   #   # Allows RSpec to persist some state between runs in order to support
   #   # the `--only-failures` and `--next-failure` CLI options. We recommend
@@ -98,10 +99,9 @@ RSpec.configure do |config|
   # the seed, which is printed after each run.
   #     --seed 1234
   # config.order = :random
-
   # Seed global randomization in this process using the `--seed` CLI option.
   # Setting this allows you to use `--seed` to deterministically reproduce
   # test failures related to randomization by passing the same `--seed` value
   # as the one that triggered the failure.
-  Kernel.srand config.seed
+  Kernel.srand(config.seed)
 end

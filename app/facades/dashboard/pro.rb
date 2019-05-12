@@ -1,15 +1,12 @@
 module Dashboard
   class Pro
-    attr_reader :user_or_org
-
+    attr_reader(:user_or_org)
     def initialize(user_or_org)
       @user_or_org = user_or_org
     end
 
     def user_or_org_article_ids
-      @user_or_org_article_ids ||=
-        Article.published.where("#{user_or_org.class.name.downcase}_id" => user_or_org.id).
-          pluck(:id)
+      @user_or_org_article_ids ||= Article.published.where("#{user_or_org.class.name.downcase}_id" => user_or_org.id).pluck(:id)
     end
 
     def this_week_reactions
@@ -69,8 +66,7 @@ module Dashboard
     end
 
     def reactors
-      User.where(id: Reaction.where(reactable_id: user_or_org_article_ids, reactable_type: "Article").
-        order("created_at DESC").limit(100).pluck(:user_id))
+      User.where(id: Reaction.where(reactable_id: user_or_org_article_ids, reactable_type: "Article").order("created_at DESC").limit(100).pluck(:user_id))
     end
   end
 end

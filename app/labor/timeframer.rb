@@ -1,5 +1,5 @@
 class Timeframer
-  attr_accessor :timeframe
+  attr_accessor(:timeframe)
   def initialize(timeframe)
     @timeframe = timeframe
   end

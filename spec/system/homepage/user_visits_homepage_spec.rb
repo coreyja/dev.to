@@ -1,85 +1,89 @@
 require "rails_helper"
 
-RSpec.describe "User visits a homepage", type: :system do
+RSpec.describe("User visits a homepage", type: :system) do
   let!(:ruby_tag) { create(:tag, name: "ruby") }
-
   before { create(:tag, name: "webdev") }
 
-  context "when user hasn't logged in" do
-    before { visit "/" }
+  context("when user hasn't logged in") do
+    before { visit("/") }
 
-    it "shows the sign-in block" do
-      within ".signin-cta-widget" do
-        expect(page).to have_text("Sign In With Twitter")
-        expect(page).to have_text("Sign In With GitHub")
+    it("shows the sign-in block") do
+      within(".signin-cta-widget") do
+        expect(page).to(have_text("Sign In With Twitter"))
+        expect(page).to(have_text("Sign In With GitHub"))
       end
     end
 
-    it "shows the tags block" do
+    it("shows the tags block") do
       within("#sidebar-nav-default-tags") do
-        expect(page).to have_link("#ruby", href: "/t/ruby")
-        expect(page).to have_link("#webdev", href: "/t/webdev")
+        expect(page).to(have_link("#ruby", href: "/t/ruby"))
+        expect(page).to(have_link("#webdev", href: "/t/webdev"))
       end
-      expect(page).to have_text("design your experience")
+
+      expect(page).to(have_text("design your experience"))
     end
 
-    describe "link tags" do
-      it "contains the qualified community name in the search link" do
+    describe("link tags") do
+      it("contains the qualified community name in the search link") do
         selector = "link[rel='search'][title='#{community_qualified_name}']"
-        expect(page).to have_selector(selector, visible: false)
+        expect(page).to(have_selector(selector, visible: false))
       end
     end
   end
 
-  context "when logged in user" do
+  context("when logged in user") do
     let(:user) { create(:user) }
 
     before do
       login_as(user)
     end
 
-    it "shows profile content", js: true do
-      visit "/"
+    it("shows profile content", js: true) do
+      visit("/")
+
       within("div#sidebar-profile-username") do
-        expect(page).to have_text(user.username)
+        expect(page).to(have_text(user.username))
       end
-      expect(page).not_to have_text("SIGN IN VIA")
+
+      expect(page).not_to(have_text("SIGN IN VIA"))
     end
 
-    it "offers to follow tags", js: true do
-      visit "/"
+    it("offers to follow tags", js: true) do
+      visit("/")
+
       within("#sidebar-nav-default-tags") do
-        expect(page).to have_text("Follow tags to improve your feed")
+        expect(page).to(have_text("Follow tags to improve your feed"))
       end
     end
 
-    context "when user follows tags" do
+    context("when user follows tags") do
       before do
         user.follows.create!(followable: ruby_tag)
         user.follows.create!(followable: create(:tag, name: "go", hotness_score: 99))
         user.follows.create!(followable: create(:tag, name: "javascript"), points: 3)
-
-        visit "/"
+        visit("/")
       end
 
-      it "shows the followed tags", js: true do
-        expect(page).to have_text("my tags")
+      it("shows the followed tags", js: true) do
+        expect(page).to(have_text("my tags"))
+
         within("#sidebar-nav-followed-tags") do
-          expect(page).to have_link("#ruby", href: "/t/ruby")
+          expect(page).to(have_link("#ruby", href: "/t/ruby"))
         end
       end
 
-      it "shows followed tags ordered by weight and name", js: true do
+      it("shows followed tags ordered by weight and name", js: true) do
         within("#sidebar-nav-followed-tags") do
-          expect(all(".sidebar-nav-tag-text").map(&:text)).to eq(%w[#javascript #go #ruby])
+          expect(all(".sidebar-nav-tag-text").map(&:text)).to(eq(%w[#javascript #go #ruby]))
         end
       end
 
-      it "shows other tags", js: true do
-        expect(page).to have_text("Other Popular Tags")
+      it("shows other tags", js: true) do
+        expect(page).to(have_text("Other Popular Tags"))
+
         within("#sidebar-nav-default-tags") do
-          expect(page).to have_link("#webdev", href: "/t/webdev")
-          expect(page).not_to have_link("#ruby", href: "/t/ruby")
+          expect(page).to(have_link("#webdev", href: "/t/webdev"))
+          expect(page).not_to(have_link("#ruby", href: "/t/ruby"))
         end
       end
     end

@@ -1,353 +1,348 @@
 # rubocop:disable Metrics/BlockLength
-
 Rails.application.routes.draw do
-  devise_for :users, controllers: {
+  devise_for(:users, controllers: {
     omniauth_callbacks: "omniauth_callbacks",
     session: "sessions",
-    registrations: "registrations"
-  }
+    registrations: "registrations",
+  })
 
-  authenticated :user, ->(user) { user.tech_admin? } do
-    mount DelayedJobWeb, at: "/delayed_job"
+  authenticated(:user, -> (user) { user.tech_admin? }) do
+    mount(DelayedJobWeb, at: "/delayed_job")
   end
 
-  devise_scope :user do
-    delete "/sign_out" => "devise/sessions#destroy"
-    get "/enter" => "registrations#new", as: :new_user_registration_path
+  devise_scope(:user) do
+    delete("/sign_out" => "devise/sessions#destroy")
+    get("/enter" => "registrations#new", as: :new_user_registration_path)
   end
 
-  namespace :admin do
     # Check administrate gem docs
+  namespace(:admin) do
     DashboardManifest::DASHBOARDS.each do |dashboard_resource|
-      resources dashboard_resource
+      resources(dashboard_resource)
     end
 
-    root controller: DashboardManifest::ROOT_DASHBOARD, action: :index
+    root(controller: DashboardManifest::ROOT_DASHBOARD, action: :index)
   end
 
-  namespace :internal do
-    resources :comments
-    resources :articles
-    resources :tags
-    resources :welcome, only: %i[index create]
-    resources :reactions, only: [:update]
-    resources :broadcasts
-    resources :pages
-    resources :users do
+  namespace(:internal) do
+    resources(:comments)
+    resources(:articles)
+    resources(:tags)
+    resources(:welcome, only: %i[index create])
+    resources(:reactions, only: [:update])
+    resources(:broadcasts)
+    resources(:pages)
+
+    resources(:users) do
       member do
-        post "banish"
-        post "full_delete"
-        patch "user_status"
-        post "merge"
+        post("banish")
+        post("full_delete")
+        patch("user_status")
+        post("merge")
       end
     end
-    resources :events
-    resources :dogfood, only: [:index]
-    resources :buffer_updates, only: %i[create update]
-    resources :articles, only: %i[index update] do
-      get "rss_articles", on: :collection
+
+    resources(:events)
+    resources(:dogfood, only: [:index])
+    resources(:buffer_updates, only: %i[create update])
+
+    resources(:articles, only: %i[index update]) do
+      get("rss_articles", on: :collection)
     end
-    resources :members, only: [:index]
-    resources :events
-    resources :feedback_messages, only: %i[update show]
-    resources :reports, only: %i[index update show], controller: "feedback_messages" do
+
+    resources(:members, only: [:index])
+    resources(:events)
+    resources(:feedback_messages, only: %i[update show])
+
+    resources(:reports, only: %i[index update show], controller: "feedback_messages") do
       collection do
-        post "send_email"
-        post "create_note"
-        post "save_status"
+        post("send_email")
+        post("create_note")
+        post("save_status")
       end
     end
   end
 
-  namespace :api, defaults: { format: "json" } do
-    scope module: :v0,
-          constraints: ApiConstraints.new(version: 0, default: true) do
-      resources :articles, only: %i[index show create update] do
+  namespace(:api, defaults: {
+    format: "json",
+
+  }) do
+    scope(module: :v0, constraints: ApiConstraints.new(version: 0, default: true)) do
+      resources(:articles, only: %i[index show create update]) do
         collection do
-          get "/onboarding", to: "articles#onboarding"
+          get("/onboarding", to: "articles#onboarding")
         end
       end
-      resources :comments
-      resources :videos, only: [:index]
-      resources :podcast_episodes, only: [:index]
-      resources :reactions, only: [:create] do
+
+      resources(:comments)
+      resources(:videos, only: [:index])
+      resources(:podcast_episodes, only: [:index])
+
+      resources(:reactions, only: [:create]) do
         collection do
-          post "/onboarding", to: "reactions#onboarding"
+          post("/onboarding", to: "reactions#onboarding")
         end
       end
-      resources :users, only: %i[index show] do
+
+      resources(:users, only: %i[index show]) do
         collection do
-          get "/sidebar_suggestions", to: "users#sidebar_suggestions"
+          get("/sidebar_suggestions", to: "users#sidebar_suggestions")
         end
       end
-      resources :tags, only: [:index] do
+
+      resources(:tags, only: [:index]) do
         collection do
-          get "/onboarding", to: "tags#onboarding"
+          get("/onboarding", to: "tags#onboarding")
         end
       end
-      resources :follows, only: [:create]
-      resources :github_repos, only: [:index] do
+
+      resources(:follows, only: [:create])
+
+      resources(:github_repos, only: [:index]) do
         collection do
-          post "/update_or_create", to: "github_repos#update_or_create"
+          post("/update_or_create", to: "github_repos#update_or_create")
         end
       end
-      get "/analytics/totals", to: "analytics#totals"
-      get "/analytics/historical", to: "analytics#historical"
-      get "/analytics/past_day", to: "analytics#past_day"
+
+      get("/analytics/totals", to: "analytics#totals")
+      get("/analytics/historical", to: "analytics#historical")
+      get("/analytics/past_day", to: "analytics#past_day")
     end
   end
 
-  namespace :notifications do
-    resources :counts, only: [:index]
-    resources :reads, only: [:create]
+  namespace(:notifications) do
+    resources(:counts, only: [:index])
+    resources(:reads, only: [:create])
   end
 
-  resources :messages, only: [:create]
-  resources :chat_channels, only: %i[index show create update]
-  resources :chat_channel_memberships, only: %i[create update destroy]
-  resources :articles, only: %i[update create destroy]
-  resources :article_mutes, only: %i[update]
-  resources :comments, only: %i[create update destroy]
-  resources :comment_mutes, only: %i[update]
-  resources :users, only: [:update] do
-    resource :twitch_stream_updates, only: %i[show create]
+  resources(:messages, only: [:create])
+  resources(:chat_channels, only: %i[index show create update])
+  resources(:chat_channel_memberships, only: %i[create update destroy])
+  resources(:articles, only: %i[update create destroy])
+  resources(:article_mutes, only: %i[update])
+  resources(:comments, only: %i[create update destroy])
+  resources(:comment_mutes, only: %i[update])
+
+  resources(:users, only: [:update]) do
+    resource(:twitch_stream_updates, only: %i[show create])
   end
-  resources :twitch_live_streams, only: :show, param: :username
-  resources :reactions, only: %i[index create]
-  resources :feedback_messages, only: %i[index create]
-  get "/reports/:slug", to: "feedback_messages#show"
-  resources :organizations, only: %i[update create]
-  resources :followed_articles, only: [:index]
-  resources :follows, only: %i[show create update]
-  resources :giveaways, only: %i[create update]
-  resources :image_uploads, only: [:create]
-  resources :blocks
-  resources :notifications, only: [:index]
-  resources :tags, only: [:index]
-  resources :stripe_subscriptions, only: %i[create update destroy]
-  resources :stripe_active_cards, only: %i[create update destroy]
-  resources :stripe_cancellations, only: [:create]
-  resources :live_articles, only: [:index]
-  resources :github_repos, only: %i[create update]
-  resources :buffered_articles, only: [:index]
-  resources :events, only: %i[index show]
-  resources :additional_content_boxes, only: [:index]
-  resources :videos, only: %i[index create new]
-  resources :video_states, only: [:create]
-  resources :twilio_tokens, only: [:show]
-  resources :html_variants
-  resources :html_variant_trials, only: [:create]
-  resources :html_variant_successes, only: [:create]
-  resources :push_notification_subscriptions, only: [:create]
-  resources :tag_adjustments, only: [:create]
-  resources :rating_votes, only: [:create]
-  resources :page_views, only: %i[create update]
-  resources :classified_listings, path: :listings, only: %i[index new create edit update delete]
-  resources :credits, only: %i[index new create]
-  resources :buffer_updates, only: [:create]
 
-  get "/listings/:category" => "classified_listings#index"
-  get "/listings/:category/:slug" => "classified_listings#show"
-  get "/notifications/:filter" => "notifications#index"
-  get "/notifications/:filter/:org_id" => "notifications#index"
-  patch "/onboarding_update" => "users#onboarding_update"
-  get "email_subscriptions/unsubscribe"
-  post "/chat_channels/:id/moderate" => "chat_channels#moderate"
-  post "/chat_channels/:id/open" => "chat_channels#open"
-  get "/connect" => "chat_channels#index"
-  get "/connect/:slug" => "chat_channels#index"
-  post "/chat_channels/create_chat" => "chat_channels#create_chat"
-  post "/chat_channels/block_chat" => "chat_channels#block_chat"
-  get "/live/:username" => "twitch_live_streams#show"
-
-  post "/pusher/auth" => "pusher#auth"
-
-  get "/social_previews/article/:id" => "social_previews#article", as: :article_social_preview
-  get "/social_previews/user/:id" => "social_previews#user", as: :user_social_preview
-  get "/social_previews/organization/:id" => "social_previews#organization", as: :organization_social_preview
-  get "/social_previews/tag/:id" => "social_previews#tag", as: :tag_social_preview
+  resources(:twitch_live_streams, only: :show, param: :username)
+  resources(:reactions, only: %i[index create])
+  resources(:feedback_messages, only: %i[index create])
+  get("/reports/:slug", to: "feedback_messages#show")
+  resources(:organizations, only: %i[update create])
+  resources(:followed_articles, only: [:index])
+  resources(:follows, only: %i[show create update])
+  resources(:giveaways, only: %i[create update])
+  resources(:image_uploads, only: [:create])
+  resources(:blocks)
+  resources(:notifications, only: [:index])
+  resources(:tags, only: [:index])
+  resources(:stripe_subscriptions, only: %i[create update destroy])
+  resources(:stripe_active_cards, only: %i[create update destroy])
+  resources(:stripe_cancellations, only: [:create])
+  resources(:live_articles, only: [:index])
+  resources(:github_repos, only: %i[create update])
+  resources(:buffered_articles, only: [:index])
+  resources(:events, only: %i[index show])
+  resources(:additional_content_boxes, only: [:index])
+  resources(:videos, only: %i[index create new])
+  resources(:video_states, only: [:create])
+  resources(:twilio_tokens, only: [:show])
+  resources(:html_variants)
+  resources(:html_variant_trials, only: [:create])
+  resources(:html_variant_successes, only: [:create])
+  resources(:push_notification_subscriptions, only: [:create])
+  resources(:tag_adjustments, only: [:create])
+  resources(:rating_votes, only: [:create])
+  resources(:page_views, only: %i[create update])
+  resources(:classified_listings, path: :listings, only: %i[index new create edit update delete])
+  resources(:credits, only: %i[index new create])
+  resources(:buffer_updates, only: [:create])
+  get("/listings/:category" => "classified_listings#index")
+  get("/listings/:category/:slug" => "classified_listings#show")
+  get("/notifications/:filter" => "notifications#index")
+  get("/notifications/:filter/:org_id" => "notifications#index")
+  patch("/onboarding_update" => "users#onboarding_update")
+  get("email_subscriptions/unsubscribe")
+  post("/chat_channels/:id/moderate" => "chat_channels#moderate")
+  post("/chat_channels/:id/open" => "chat_channels#open")
+  get("/connect" => "chat_channels#index")
+  get("/connect/:slug" => "chat_channels#index")
+  post("/chat_channels/create_chat" => "chat_channels#create_chat")
+  post("/chat_channels/block_chat" => "chat_channels#block_chat")
+  get("/live/:username" => "twitch_live_streams#show")
+  post("/pusher/auth" => "pusher#auth")
+  get("/social_previews/article/:id" => "social_previews#article", as: :article_social_preview)
+  get("/social_previews/user/:id" => "social_previews#user", as: :user_social_preview)
+  get("/social_previews/organization/:id" => "social_previews#organization", as: :organization_social_preview)
+  get("/social_previews/tag/:id" => "social_previews#tag", as: :tag_social_preview)
 
   ### Subscription vanity url
-  post "membership-action" => "stripe_subscriptions#create"
-
-  get "/async_info/base_data", controller: "async_info#base_data", defaults: { format: :json }
-
-  get "/hello-goodbye-to-the-go-go-go",
-      to: redirect("ben/hello-goodbye-to-the-go-go-go")
-  get "/dhh-on-the-future-of-rails",
-      to: redirect("ben/dhh-on-the-future-of-rails")
-  get "/christopher-chedeau-on-the-philosophies-of-react",
-      to: redirect("ben/christopher-chedeau-on-the-philosophies-of-react")
-  get "/javascript-fatigue-buzzword",
-      to: redirect("ben/javascript-fatigue-buzzword")
-  get "/chris-seaton-making-ruby-fast",
-      to: redirect("ben/chris-seaton-making-ruby-fast")
-  get "/communicating-intent-the-perpetually-misunderstood-ruby-bang",
-      to: redirect("tom/communicating-intent-the-perpetually-misunderstood-ruby-bang")
-  get "/quick-tip-grepping-rails-routes",
-      to: redirect("tom/quick-tip-grepping-rails-routes")
-  get "/use-cases-for-githubs-new-direct-upload-feature",
-      to: redirect("ben/use-cases-for-githubs-new-direct-upload-feature")
-  get "/this-blog-post-was-written-using-draft-js",
-      to: redirect("ben/this-blog-post-was-written-using-draft-js")
-  get "/the-future-of-software-development",
-      to: redirect("ben/the-future-of-software-development")
-  get "/the-zen-of-missing-out-on-the-next-great-programming-tool",
-      to: redirect("ben/the-zen-of-missing-out-on-the-next-great-programming-tool")
-  get "/the-joy-and-benefit-of-being-an-early-adopter-in-programming",
-      to: redirect("ben/the-joy-and-benefit-of-being-an-early-adopter-in-programming")
-  get "/watkinsmatthewp/every-developer-should-write-a-personal-automation-api",
-      to: redirect("anotherdevblog/every-developer-should-write-a-personal-automation-api")
+  post("membership-action" => "stripe_subscriptions#create")
+  get("/async_info/base_data", controller: "async_info#base_data", defaults: {
+    format: :json,
+  })
+  get("/hello-goodbye-to-the-go-go-go", to: redirect("ben/hello-goodbye-to-the-go-go-go"))
+  get("/dhh-on-the-future-of-rails", to: redirect("ben/dhh-on-the-future-of-rails"))
+  get("/christopher-chedeau-on-the-philosophies-of-react", to: redirect("ben/christopher-chedeau-on-the-philosophies-of-react"))
+  get("/javascript-fatigue-buzzword", to: redirect("ben/javascript-fatigue-buzzword"))
+  get("/chris-seaton-making-ruby-fast", to: redirect("ben/chris-seaton-making-ruby-fast"))
+  get("/communicating-intent-the-perpetually-misunderstood-ruby-bang", to: redirect("tom/communicating-intent-the-perpetually-misunderstood-ruby-bang"))
+  get("/quick-tip-grepping-rails-routes", to: redirect("tom/quick-tip-grepping-rails-routes"))
+  get("/use-cases-for-githubs-new-direct-upload-feature", to: redirect("ben/use-cases-for-githubs-new-direct-upload-feature"))
+  get("/this-blog-post-was-written-using-draft-js", to: redirect("ben/this-blog-post-was-written-using-draft-js"))
+  get("/the-future-of-software-development", to: redirect("ben/the-future-of-software-development"))
+  get("/the-zen-of-missing-out-on-the-next-great-programming-tool", to: redirect("ben/the-zen-of-missing-out-on-the-next-great-programming-tool"))
+  get("/the-joy-and-benefit-of-being-an-early-adopter-in-programming", to: redirect("ben/the-joy-and-benefit-of-being-an-early-adopter-in-programming"))
+  get("/watkinsmatthewp/every-developer-should-write-a-personal-automation-api", to: redirect("anotherdevblog/every-developer-should-write-a-personal-automation-api"))
 
   # Settings
-  post "users/update_language_settings" => "users#update_language_settings"
-  post "users/join_org" => "users#join_org"
-  post "users/leave_org" => "users#leave_org"
-  post "users/add_org_admin" => "users#add_org_admin"
-  post "users/remove_org_admin" => "users#remove_org_admin"
-  post "users/remove_from_org" => "users#remove_from_org"
-  delete "users/remove_association", to: "users#remove_association"
-  delete "users/destroy", to: "users#destroy"
-  post "organizations/generate_new_secret" => "organizations#generate_new_secret"
-  post "users/api_secrets" => "api_secrets#create"
-  delete "users/api_secrets" => "api_secrets#destroy"
+  post("users/update_language_settings" => "users#update_language_settings")
+  post("users/join_org" => "users#join_org")
+  post("users/leave_org" => "users#leave_org")
+  post("users/add_org_admin" => "users#add_org_admin")
+  post("users/remove_org_admin" => "users#remove_org_admin")
+  post("users/remove_from_org" => "users#remove_from_org")
+  delete("users/remove_association", to: "users#remove_association")
+  delete("users/destroy", to: "users#destroy")
+  post("organizations/generate_new_secret" => "organizations#generate_new_secret")
+  post("users/api_secrets" => "api_secrets#create")
+  delete("users/api_secrets" => "api_secrets#destroy")
 
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".
-
   # You can have the root of your site routed with "root
-  get "/about" => "pages#about"
-  get "/privacy" => "pages#privacy"
-  get "/terms" => "pages#terms"
-  get "/contact" => "pages#contact"
-  get "/merch" => "pages#merch"
-  get "/rlygenerator" => "pages#generator"
-  get "/orlygenerator" => "pages#generator"
-  get "/rlyslack" => "pages#generator"
-  get "/rlyweb" => "pages#rlyweb"
-  get "/rly" => "pages#rlyweb"
-  get "/code-of-conduct" => "pages#code_of_conduct"
-  get "/report-abuse" => "pages#report_abuse"
-  get "/infiniteloop" => "pages#infinite_loop"
-  get "/faq" => "pages#faq"
-  get "/live" => "pages#live"
-  get "/swagnets" => "pages#swagnets"
-  get "/welcome" => "pages#welcome"
-  get "/badge" => "pages#badge"
-  get "/shecoded" => "pages#shecoded"
-  get "/💸", to: redirect("t/hiring")
-  get "/security", to: "pages#bounty"
-  get "/survey", to: redirect("https://dev.to/ben/final-thoughts-on-the-state-of-the-web-survey-44nn")
-  get "/now" => "pages#now"
-  get "/membership" => "pages#membership"
-  get "/events" => "events#index"
-  get "/workshops", to: redirect("events")
-  get "/sponsorship-info" => "pages#sponsorship_faq"
-  get "/organization-info" => "pages#org_info"
-  get "/sponsors" => "pages#sponsors"
-  get "/search" => "stories#search"
-  post "articles/preview" => "articles#preview"
-  post "comments/preview" => "comments#preview"
-  get "/stories/warm_comments/:username/:slug" => "stories#warm_comments"
-  get "/freestickers" => "giveaways#new"
-  get "/freestickers/edit" => "giveaways#edit"
-  get "/scholarship", to: redirect("/p/scholarships")
-  get "/scholarships", to: redirect("/p/scholarships")
-  get "/memberships", to: redirect("/membership")
-  get "/shop", to: redirect("https://shop.dev.to/")
-  get "/tag-moderation" => "pages#tag_moderation"
-  get "/community-moderation" => "pages#community_moderation"
-  get "/mod" => "moderations#index"
+  get("/about" => "pages#about")
+  get("/privacy" => "pages#privacy")
+  get("/terms" => "pages#terms")
+  get("/contact" => "pages#contact")
+  get("/merch" => "pages#merch")
+  get("/rlygenerator" => "pages#generator")
+  get("/orlygenerator" => "pages#generator")
+  get("/rlyslack" => "pages#generator")
+  get("/rlyweb" => "pages#rlyweb")
+  get("/rly" => "pages#rlyweb")
+  get("/code-of-conduct" => "pages#code_of_conduct")
+  get("/report-abuse" => "pages#report_abuse")
+  get("/infiniteloop" => "pages#infinite_loop")
+  get("/faq" => "pages#faq")
+  get("/live" => "pages#live")
+  get("/swagnets" => "pages#swagnets")
+  get("/welcome" => "pages#welcome")
+  get("/badge" => "pages#badge")
+  get("/shecoded" => "pages#shecoded")
+  get("/💸", to: redirect("t/hiring"))
+  get("/security", to: "pages#bounty")
+  get("/survey", to: redirect("https://dev.to/ben/final-thoughts-on-the-state-of-the-web-survey-44nn"))
+  get("/now" => "pages#now")
+  get("/membership" => "pages#membership")
+  get("/events" => "events#index")
+  get("/workshops", to: redirect("events"))
+  get("/sponsorship-info" => "pages#sponsorship_faq")
+  get("/organization-info" => "pages#org_info")
+  get("/sponsors" => "pages#sponsors")
+  get("/search" => "stories#search")
+  post("articles/preview" => "articles#preview")
+  post("comments/preview" => "comments#preview")
+  get("/stories/warm_comments/:username/:slug" => "stories#warm_comments")
+  get("/freestickers" => "giveaways#new")
+  get("/freestickers/edit" => "giveaways#edit")
+  get("/scholarship", to: redirect("/p/scholarships"))
+  get("/scholarships", to: redirect("/p/scholarships"))
+  get("/memberships", to: redirect("/membership"))
+  get("/shop", to: redirect("https://shop.dev.to/"))
+  get("/tag-moderation" => "pages#tag_moderation")
+  get("/community-moderation" => "pages#community_moderation")
+  get("/mod" => "moderations#index")
+  post("/fallback_activity_recorder" => "ga_events#create")
+  get("/page/:slug" => "pages#show")
 
-  post "/fallback_activity_recorder" => "ga_events#create"
+  scope("p") do
+    pages_actions = %w[rly rlyweb welcome twitter_moniter editor_guide publishing_from_rss_guide information markdown_basics scholarships wall_of_patrons membership_form badges]
 
-  get "/page/:slug" => "pages#show"
-
-  scope "p" do
-    pages_actions = %w[rly rlyweb welcome twitter_moniter editor_guide publishing_from_rss_guide information
-                       markdown_basics scholarships wall_of_patrons membership_form badges]
     pages_actions.each do |action|
-      get action, action: action, controller: "pages"
+      get(action, action: action, controller: "pages")
     end
   end
 
-  get "/settings/(:tab)" => "users#edit"
-  get "/signout_confirm" => "users#signout_confirm"
-  get "/dashboard" => "dashboards#show"
-  get "/dashboard/pro" => "dashboards#pro"
-  get "dashboard/pro/org/:org_id" => "dashboards#pro"
-  get "dashboard/following" => "dashboards#following"
-  get "/dashboard/:which" => "dashboards#followers",
-      constraints: {
-        which: /organization_user_followers|user_followers/
-      }
-  get "/dashboard/:which" => "dashboards#show",
-      constraints: {
-        which: /organization|reading/
-      }
-  get "/dashboard/:username" => "dashboards#show"
+  get("/settings/(:tab)" => "users#edit")
+  get("/signout_confirm" => "users#signout_confirm")
+  get("/dashboard" => "dashboards#show")
+  get("/dashboard/pro" => "dashboards#pro")
+  get("dashboard/pro/org/:org_id" => "dashboards#pro")
+  get("dashboard/following" => "dashboards#following")
+  get("/dashboard/:which" => "dashboards#followers", constraints: {
+    which: /organization_user_followers|user_followers/,
+  })
+  get("/dashboard/:which" => "dashboards#show", constraints: {
+    which: /organization|reading/,
+  })
+  get("/dashboard/:username" => "dashboards#show")
 
   # for testing rails mailers
   unless Rails.env.production?
-    get "/rails/mailers" => "rails/mailers#index"
-    get "/rails/mailers/*path" => "rails/mailers#preview"
+    get("/rails/mailers" => "rails/mailers#index")
+    get("/rails/mailers/*path" => "rails/mailers#preview")
   end
 
-  get "/new" => "articles#new"
-  get "/new/:template" => "articles#new"
-
-  get "/pod" => "podcast_episodes#index"
-  get "/readinglist" => "reading_list_items#index"
-
-  get "/feed" => "articles#feed", as: "feed", defaults: { format: "rss" }
-  get "/feed/tag/:tag" => "articles#feed",
-      as: "tag_feed", defaults: { format: "rss" }
-  get "/feed/:username" => "articles#feed",
-      as: "user_feed", defaults: { format: "rss" }
-  get "/rss" => "articles#feed", defaults: { format: "rss" }
-
-  get "/tag/:tag" => "stories#index"
-  get "/t/:tag" => "stories#index"
-  get "/t/:tag/edit", to: "tags#edit"
-  get "/t/:tag/admin", to: "tags#admin"
-  patch "/tag/:id", to: "tags#update"
-  get "/t/:tag/top/:timeframe" => "stories#index"
-  get "/t/:tag/:timeframe" => "stories#index",
-      constraints: { timeframe: /latest/ }
-
-  get "/badge/:slug" => "badges#show"
-
-  get "/top/:timeframe" => "stories#index"
-
-  get "/:timeframe" => "stories#index", constraints: { timeframe: /latest/ }
+  get("/new" => "articles#new")
+  get("/new/:template" => "articles#new")
+  get("/pod" => "podcast_episodes#index")
+  get("/readinglist" => "reading_list_items#index")
+  get("/feed" => "articles#feed", as: "feed", defaults: {
+    format: "rss",
+  })
+  get("/feed/tag/:tag" => "articles#feed", as: "tag_feed", defaults: {
+    format: "rss",
+  })
+  get("/feed/:username" => "articles#feed", as: "user_feed", defaults: {
+    format: "rss",
+  })
+  get("/rss" => "articles#feed", defaults: {
+    format: "rss",
+  })
+  get("/tag/:tag" => "stories#index")
+  get("/t/:tag" => "stories#index")
+  get("/t/:tag/edit", to: "tags#edit")
+  get("/t/:tag/admin", to: "tags#admin")
+  patch("/tag/:id", to: "tags#update")
+  get("/t/:tag/top/:timeframe" => "stories#index")
+  get("/t/:tag/:timeframe" => "stories#index", constraints: {
+    timeframe: /latest/,
+  })
+  get("/badge/:slug" => "badges#show")
+  get("/top/:timeframe" => "stories#index")
+  get("/:timeframe" => "stories#index", constraints: {
+    timeframe: /latest/,
+  })
 
   # Legacy comment format (might still be floating around app, and external links)
-  get "/:username/:slug/comments/new/:parent_id_code" => "comments#new"
-  get "/:username/:slug/comments/new" => "comments#new"
-  get "/:username/:slug/comments" => "comments#index"
-  get "/:username/:slug/comments/:id_code" => "comments#index"
-  get "/:username/:slug/comments/:id_code/edit" => "comments#edit"
-  get "/:username/:slug/comments/:id_code/delete_confirm" => "comments#delete_confirm"
+  get("/:username/:slug/comments/new/:parent_id_code" => "comments#new")
+  get("/:username/:slug/comments/new" => "comments#new")
+  get("/:username/:slug/comments" => "comments#index")
+  get("/:username/:slug/comments/:id_code" => "comments#index")
+  get("/:username/:slug/comments/:id_code/edit" => "comments#edit")
+  get("/:username/:slug/comments/:id_code/delete_confirm" => "comments#delete_confirm")
 
   # Proper link format
-  get "/:username/comment/:id_code" => "comments#index"
-  get "/:username/comment/:id_code/edit" => "comments#edit"
-  get "/:username/comment/:id_code/delete_confirm" => "comments#delete_confirm"
-  get "/:username/comment/:id_code/mod" => "moderations#comment"
-  get "/:username/comment/:id_code/settings", to: "comments#settings"
-
-  get "/:username/:slug/:view" => "stories#show",
-      constraints: { view: /moderate/ }
-  get "/:username/:slug/mod" => "moderations#article"
-  get "/:username/:slug/manage" => "articles#manage"
-  get "/:username/:slug/edit" => "articles#edit"
-  get "/:username/:slug/delete_confirm" => "articles#delete_confirm"
-  get "/:username/:view" => "stories#index",
-      constraints: { view: /comments|moderate|admin/ }
-  get "/:username/:slug" => "stories#show"
-  get "/:username" => "stories#index"
-
-  root "stories#index"
+  get("/:username/comment/:id_code" => "comments#index")
+  get("/:username/comment/:id_code/edit" => "comments#edit")
+  get("/:username/comment/:id_code/delete_confirm" => "comments#delete_confirm")
+  get("/:username/comment/:id_code/mod" => "moderations#comment")
+  get("/:username/comment/:id_code/settings", to: "comments#settings")
+  get("/:username/:slug/:view" => "stories#show", constraints: {
+    view: /moderate/,
+  })
+  get("/:username/:slug/mod" => "moderations#article")
+  get("/:username/:slug/manage" => "articles#manage")
+  get("/:username/:slug/edit" => "articles#edit")
+  get("/:username/:slug/delete_confirm" => "articles#delete_confirm")
+  get("/:username/:view" => "stories#index", constraints: {
+    view: /comments|moderate|admin/,
+  })
+  get("/:username/:slug" => "stories#show")
+  get("/:username" => "stories#index")
+  root("stories#index")
 end
-
-# rubocop:enable Metrics/BlockLength

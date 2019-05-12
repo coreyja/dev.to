@@ -5,15 +5,10 @@ class ModerationService
 
   def send_moderation_notification(object)
     return unless @available_moderators.any?
-
     moderator = @available_moderators.sample
-    Notification.create(
-      user_id: moderator.id,
-      notifiable_id: object.id,
-      notifiable_type: object.class.name,
-      action: "Moderation",
-    )
+    Notification.create(user_id: moderator.id, notifiable_id: object.id, notifiable_type: object.class.name, action: "Moderation")
     moderator.update_column(:last_moderation_notification, Time.current)
   end
-  handle_asynchronously :send_moderation_notification
+
+  handle_asynchronously(:send_moderation_notification)
 end

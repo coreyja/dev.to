@@ -1,5 +1,5 @@
 class ArticleSuggester
-  attr_accessor :article
+  attr_accessor(:article)
   def initialize(article)
     @article = article
   end
@@ -13,24 +13,20 @@ class ArticleSuggester
   end
 
   def other_suggestions(num = 4)
-    Article.published.where(featured: true).
-      where.not(id: article.id).
-      order("hotness_score DESC").
-      includes(:user).
-      offset(rand(0..offsets[1])).
-      first(num)
+    Article.published.where(featured: true).where.not(id: article.id).order("hotness_score DESC").includes(:user).offset(rand(0..offsets[1])).first(num)
   end
 
   def suggestions_by_tag
-    Article.published.tagged_with(article.tag_list, any: true).
-      where.not(id: article.id).
-      order("hotness_score DESC").
-      includes(:user).
-      offset(rand(0..offsets[0])).
-      first(4)
+    Article.published.tagged_with(article.tag_list, any: true).where.not(id: article.id).order("hotness_score DESC").includes(:user).offset(rand(0..offsets[0])).first(4)
   end
 
   def offsets
-    Rails.env.production? ? [10, 120] : [0, 0]
+    Rails.env.production? ? [
+      10,
+      120,
+    ] : [
+      0,
+      0,
+    ]
   end
 end

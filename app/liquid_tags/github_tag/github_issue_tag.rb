@@ -23,28 +23,27 @@ class GithubTag
       date_link = content_json[:html_url]
       title = generate_title
       html = "" \
-      "<div class=\"ltag_github-liquid-tag\"> "\
-        "#{title}" \
-        "<div class=\"github-thread\"> " \
-          "<div class=\"timeline-comment-header\"> " \
-            "<a href=\"#{user_html_url}\"> " \
-              "<img class=\"github-liquid-tag-img\" src=\"#{user_avatar_url}\" alt=\"#{username} avatar\"> " \
-            "</a> " \
-            "<span class=\"arrow-left-outer\"></span> " \
-            "<span class=\"arrow-left-inner\"></span> " \
-            "<div class=\"timeline-comment-header-text\"> " \
-              "<strong> " \
-                "<a href=\"#{user_html_url}\">#{username}</a> " \
-              "</strong> commented on <a href=\"#{date_link}\">#{date}</a> <span class=\"timestamp\"></span> " \
-            "</div> " \
-          "</div> " \
-          "<div class=\"ltag-github-body\"> " \
-            "#{body.chomp} " \
-          "</div> " \
-          "<div class=\"gh-btn-container\"><a class=\"gh-btn\" href=\"#{date_link}\">View on GitHub</a></div>"\
-        "</div> " \
-      "</div>"
-
+             "<div class=\"ltag_github-liquid-tag\"> " \
+             "#{title}" \
+             "<div class=\"github-thread\"> " \
+             "<div class=\"timeline-comment-header\"> " \
+             "<a href=\"#{user_html_url}\"> " \
+             "<img class=\"github-liquid-tag-img\" src=\"#{user_avatar_url}\" alt=\"#{username} avatar\"> " \
+             "</a> " \
+             "<span class=\"arrow-left-outer\"></span> " \
+             "<span class=\"arrow-left-inner\"></span> " \
+             "<div class=\"timeline-comment-header-text\"> " \
+             "<strong> " \
+             "<a href=\"#{user_html_url}\">#{username}</a> " \
+             "</strong> commented on <a href=\"#{date_link}\">#{date}</a> <span class=\"timestamp\"></span> " \
+             "</div> " \
+             "</div> " \
+             "<div class=\"ltag-github-body\"> " \
+             "#{body.chomp} " \
+             "</div> " \
+             "<div class=\"gh-btn-container\"><a class=\"gh-btn\" href=\"#{date_link}\">View on GitHub</a></div>" \
+             "</div> " \
+             "</div>"
       finalize_html(html)
     end
 
@@ -53,6 +52,7 @@ class GithubTag
     def parse_link(link)
       link = ActionController::Base.helpers.strip_tags(link)
       link_no_space = link.delete(" ")
+
       if valid_link?(link_no_space)
         generate_api_link(link_no_space)
       else
@@ -63,7 +63,7 @@ class GithubTag
     def generate_api_link(input)
       input = input.gsub(/\?.*/, "")
       input = input.gsub(/\d{1,}#issuecomment-/, "comments/") if input.include?("#issuecomment-")
-      "https://api.github.com/repos/#{input.gsub(/.*github\.com\//, '')}"
+      "https://api.github.com/repos/#{input.gsub(/.*github\.com\//, "")}"
     end
 
     def generate_title
@@ -72,17 +72,16 @@ class GithubTag
       number = content_json[:number]
       link = content_json[:html_url]
       return unless title
-
-      "<h1> " \
-        "<a href=\"#{link}\">" \
-          "<img class=\"github-logo\" src=\"#{ActionController::Base.helpers.asset_path('github-logo.svg')}\" /><span class=\"issue-title\">#{title}</span> <span class=\"issue-number\">##{number}</span> " \
-        "</a>" \
+                              "<h1> " \
+      "<a href=\"#{link}\">" \
+      "<img class=\"github-logo\" src=\"#{ActionController::Base.helpers.asset_path("github-logo.svg")}\" /><span class=\"issue-title\">#{title}</span> <span class=\"issue-number\">##{number}</span> " \
+      "</a>" \
       "</h1> "
     end
 
     def finalize_html(input)
       input.gsub(/(?!<code[^>]*?>)(@[a-zA-Z]{3,})(?![^<]*?<\/code>)/) do |target|
-        "<a class=\"github-user-link\" href=\"https://github.com/#{target.delete('@')}\">#{target}</a>"
+        "<a class=\"github-user-link\" href=\"https://github.com/#{target.delete("@")}\">#{target}</a>"
       end.html_safe
     end
 

@@ -1,7 +1,6 @@
 module Moderator
   class BanishUser < ManageActivityAndRoles
-    attr_reader :user, :admin
-
+    attr_reader(:user, :admin)
     def initialize(admin:, user:)
       @user = user
       @admin = admin
@@ -36,23 +35,18 @@ module Moderator
     def reassign_and_bust_username
       new_name = "spam_#{rand(10_000)}"
       new_username = "spam_#{rand(10_000)}"
+
       if User.find_by(name: new_name) || User.find_by(username: new_username)
         new_name = "spam_#{rand(10_000)}"
         new_username = "spam_#{rand(10_000)}"
       end
+
       user.update_columns(name: new_name, username: new_username, old_username: user.username, profile_updated_at: Time.current)
       CacheBuster.new.bust("/#{user.old_username}")
     end
 
     def remove_profile_info
-      user.update_columns(
-        twitter_username: nil, github_username: nil, website_url: "", summary: "",
-        location: "", education: "", employer_name: "", employer_url: "", employment_title: "",
-        mostly_work_with: "", currently_learning: "", currently_hacking_on: "", available_for: "",
-        email_public: false, facebook_url: nil, dribbble_url: nil, medium_url: nil, stackoverflow_url: nil,
-        behance_url: nil, linkedin_url: nil, gitlab_url: nil, mastodon_url: nil, twitch_url: nil
-      )
-
+      user.update_columns(twitter_username: nil, github_username: nil, website_url: "", summary: "", location: "", education: "", employer_name: "", employer_url: "", employment_title: "", mostly_work_with: "", currently_learning: "", currently_hacking_on: "", available_for: "", email_public: false, facebook_url: nil, dribbble_url: nil, medium_url: nil, stackoverflow_url: nil, behance_url: nil, linkedin_url: nil, gitlab_url: nil, mastodon_url: nil, twitch_url: nil)
       user.update_columns(profile_image: "https://thepracticaldev.s3.amazonaws.com/i/99mvlsfu5tfj9m7ku25d.png")
     end
   end

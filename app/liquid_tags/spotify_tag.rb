@@ -5,9 +5,8 @@ class SpotifyTag < LiquidTagBase
     user: 330,
     artist: 240,
     album: 240,
-    episode: 80
+    episode: 80,
   }.freeze
-
   def initialize(tag_name, uri, tokens)
     super
     @parsed_uri = parse_uri(uri)
@@ -25,7 +24,7 @@ class SpotifyTag < LiquidTagBase
         allow="encrypted-media"
         src="#{generate_embed_link(@parsed_uri)}">
       </iframe>
-    HTML
+HTML
     finalize_html(html)
   end
 

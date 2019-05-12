@@ -1,6 +1,5 @@
 class ArticleDecorator < ApplicationDecorator
   delegate_all
-
   def current_state_path
     published ? "/#{username}/#{slug}" : "/#{username}/#{slug}?preview=#{password}"
   end
@@ -22,7 +21,7 @@ class ArticleDecorator < ApplicationDecorator
   end
 
   def url
-    "https://#{ApplicationConfig['APP_DOMAIN']}#{path}"
+    "https://#{ApplicationConfig["APP_DOMAIN"]}#{path}"
   end
 
   def liquid_tags_used
@@ -45,10 +44,11 @@ class ArticleDecorator < ApplicationDecorator
 
   def internal_utm_params(place = "additional_box")
     campaign = if boosted_additional_articles
-                 "#{organization&.slug}_boosted"
-               else
-                 "regular"
-               end
+      "#{organization&.slug}_boosted"
+    else
+      "regular"
+    end
+
     "?utm_source=#{place}&utm_medium=internal&utm_campaign=#{campaign}&booster_org=#{organization&.slug}"
   end
 

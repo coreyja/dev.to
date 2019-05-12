@@ -1,36 +1,37 @@
 class ChatChannel < ApplicationRecord
-  include AlgoliaSearch
-  attr_accessor :current_user
+  include(AlgoliaSearch)
+  attr_accessor(:current_user)
+  has_many(:messages)
+  has_many(:chat_channel_memberships, dependent: :destroy)
+  has_many(:users, through: :chat_channel_memberships)
+  has_many(:active_memberships, -> { where(status: "active") }, class_name: "ChatChannelMembership", inverse_of: :chat_channel)
+  has_many(:pending_memberships, -> { where(status: "pending") }, class_name: "ChatChannelMembership", inverse_of: :chat_channel)
+  has_many(:rejected_memberships, -> { where(status: "rejected") }, class_name: "ChatChannelMembership", inverse_of: :chat_channel)
+  has_many(:mod_memberships, -> { where(role: "mod") }, class_name: "ChatChannelMembership", inverse_of: :chat_channel)
+  has_many(:active_users, through: :active_memberships, class_name: "User", source: :user)
+  has_many(:pending_users, through: :pending_memberships, class_name: "User", source: :user)
+  has_many(:rejected_users, through: :rejected_memberships, class_name: "User", source: :user)
+  has_many(:mod_users, through: :mod_memberships, class_name: "User", source: :user)
+  validates(:channel_type, presence: true, inclusion: {
+    in: %w[open invite_only direct],
+  })
+  validates(:status, presence: true, inclusion: {
+    in: %w[active inactive blocked],
+  })
+  validates(:slug, uniqueness: true, presence: true)
 
-  has_many :messages
-  has_many :chat_channel_memberships, dependent: :destroy
-  has_many :users, through: :chat_channel_memberships
-
-  has_many :active_memberships, -> { where status: "active" }, class_name: "ChatChannelMembership", inverse_of: :chat_channel
-  has_many :pending_memberships, -> { where status: "pending" }, class_name: "ChatChannelMembership", inverse_of: :chat_channel
-  has_many :rejected_memberships, -> { where status: "rejected" }, class_name: "ChatChannelMembership", inverse_of: :chat_channel
-  has_many :mod_memberships, -> { where role: "mod" }, class_name: "ChatChannelMembership", inverse_of: :chat_channel
-  has_many :active_users, through: :active_memberships, class_name: "User", source: :user
-  has_many :pending_users, through: :pending_memberships, class_name: "User", source: :user
-  has_many :rejected_users, through: :rejected_memberships, class_name: "User", source: :user
-  has_many :mod_users, through: :mod_memberships, class_name: "User", source: :user
-
-  validates :channel_type, presence: true, inclusion: { in: %w[open invite_only direct] }
-  validates :status, presence: true, inclusion: { in: %w[active inactive blocked] }
-  validates :slug, uniqueness: true, presence: true
-
-  algoliasearch index_name: "SecuredChatChannel_#{Rails.env}" do
-    attribute :id, :viewable_by, :slug, :channel_type,
-              :channel_name, :channel_users, :last_message_at, :status,
-              :messages_count, :channel_human_names, :channel_mod_ids, :pending_users_select_fields,
-              :description
-    searchableAttributes %i[channel_name channel_slug channel_human_names]
-    attributesForFaceting ["filterOnly(viewable_by)", "filterOnly(status)", "filterOnly(channel_type)"]
-    ranking ["desc(last_message_at)"]
+  algoliasearch(index_name: "SecuredChatChannel_#{Rails.env}") do
+    attribute(:id, :viewable_by, :slug, :channel_type, :channel_name, :channel_users, :last_message_at, :status, :messages_count, :channel_human_names, :channel_mod_ids, :pending_users_select_fields, :description)
+    searchableAttributes(%i[channel_name channel_slug channel_human_names])
+    attributesForFaceting([
+      "filterOnly(viewable_by)",
+      "filterOnly(status)",
+      "filterOnly(channel_type)",
+    ])
+    ranking(["desc(last_message_at)"])
   end
 
-  before_destroy :remove_from_index!
-
+  before_destroy(:remove_from_index!)
   def open?
     channel_type == "open"
   end
@@ -45,10 +46,12 @@ class ChatChannel < ApplicationRecord
 
   def clear_channel
     messages.find_each(&:destroy!)
-    Pusher.trigger(pusher_channels, "channel-cleared", { chat_channel_id: id }.to_json)
+    Pusher.trigger(pusher_channels, "channel-cleared", {
+      chat_channel_id: id,
+    }.to_json)
     true
   rescue Pusher::Error => e
-    logger.info "PUSHER ERROR: #{e.message}"
+    logger.info("PUSHER ERROR: #{e.message}")
   end
 
   def has_member?(user)
@@ -72,22 +75,17 @@ class ChatChannel < ApplicationRecord
     end
 
     channel = ChatChannel.find_by(slug: slug)
+
     if channel
       raise "Blocked channel" if channel.status == "blocked"
-
       channel.status = "active"
       channel.save
     else
-      channel = create(
-        channel_type: channel_type,
-        channel_name: contrived_name,
-        slug: slug,
-        last_message_at: 1.week.ago,
-        status: "active",
-      )
+      channel = create(channel_type: channel_type, channel_name: contrived_name, slug: slug, last_message_at: 1.week.ago, status: "active")
       channel.add_users(users)
       channel.index!
     end
+
     channel
   end
 
@@ -109,6 +107,7 @@ class ChatChannel < ApplicationRecord
 
   def adjusted_slug(user = nil, caller_type = "reciever")
     user ||= current_user
+
     if direct? && caller_type == "reciever"
       "@" + slug.gsub("/#{user.username}", "").gsub("#{user.username}/", "")
     elsif caller_type == "sender"
@@ -127,19 +126,20 @@ class ChatChannel < ApplicationRecord
   end
 
   def channel_human_names
-    active_memberships.
-      order("last_opened_at DESC").limit(5).includes(:user).map do |m|
-        m.user.name
-      end
+    active_memberships.order("last_opened_at DESC").limit(5).includes(:user).map do |m|
+      m.user.name
+    end
   end
 
   def channel_users
+
     # Purely for algolia indexing
     obj = {}
-    active_memberships.
-      order("last_opened_at DESC").limit(25).includes(:user).each_with_index do |m, i|
+
+    active_memberships.order("last_opened_at DESC").limit(25).includes(:user).each_with_index do |m, i|
       obj[m.user.username] = user_obj(m, i)
     end
+
     obj
   end
 
@@ -154,7 +154,7 @@ class ChatChannel < ApplicationRecord
       name: membership.user.name,
       last_opened_at: membership.last_opened_at,
       username: membership.user.username,
-      id: membership.user_id
+      id: membership.user_id,
     }
   end
 

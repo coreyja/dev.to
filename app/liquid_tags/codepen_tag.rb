@@ -15,7 +15,7 @@ class CodepenTag < LiquidTagBase
         allowtransparency="true"
         style="width: 100%;">
       </iframe>
-    HTML
+HTML
     finalize_html(html)
   end
 
@@ -32,9 +32,7 @@ class CodepenTag < LiquidTagBase
     # Validation
     validated_options = options.map { |o| valid_option(o) }.reject(&:nil?)
     raise StandardError, "Invalid Options" unless options.empty? || !validated_options.empty?
-
     option = validated_options.join("&")
-
     option.presence || "default-tab=result"
   end
 
@@ -47,8 +45,7 @@ class CodepenTag < LiquidTagBase
 
   def valid_link?(link)
     link_no_space = link.delete(" ")
-    (link_no_space =~
-      /^(http|https):\/\/(codepen\.io|codepen\.io\/team)\/[a-zA-Z0-9\-]{1,20}\/pen\/([a-zA-Z]{5,7})\/{0,1}\z/)&.zero?
+    (link_no_space =~ /^(http|https):\/\/(codepen\.io|codepen\.io\/team)\/[a-zA-Z0-9\-]{1,20}\/pen\/([a-zA-Z]{5,7})\/{0,1}\z/)&.zero?
   end
 
   def raise_error

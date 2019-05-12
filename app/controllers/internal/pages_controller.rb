@@ -1,6 +1,5 @@
 class Internal::PagesController < Internal::ApplicationController
-  layout "internal"
-
+  layout("internal")
   def index
     @pages = Page.all
   end
@@ -16,27 +15,23 @@ class Internal::PagesController < Internal::ApplicationController
   def update
     @page = Page.find(params[:id])
     @page.update!(page_params)
-    redirect_to "/internal/pages"
+    redirect_to("/internal/pages")
   end
 
   def create
     @page = Page.new(page_params)
     @page.save!
-    redirect_to "/internal/pages"
+    redirect_to("/internal/pages")
   end
 
   def destroy
     @page = Page.find(params[:id])
     @page.destroy
-    redirect_to "/internal/pages"
+    redirect_to("/internal/pages")
   end
 
   def page_params
-    params.require(:page).permit(:title,
-                                 :slug,
-                                 :body_markdown,
-                                 :body_html,
-                                 :description,
-                                 :template)
+    params.require(:page).permit(:title, :slug, :body_markdown, :body_html, :description, :template)
+
   end
 end

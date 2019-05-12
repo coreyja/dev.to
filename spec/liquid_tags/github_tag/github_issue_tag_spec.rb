@@ -2,33 +2,32 @@ require "rails_helper"
 
 vcr_option = {
   cassette_name: "github_api",
-  allow_playback_repeats: "true"
+  allow_playback_repeats: "true",
 }
 
-RSpec.describe GithubTag::GithubIssueTag, vcr: vcr_option do
-  describe "#id" do
+RSpec.describe(GithubTag::GithubIssueTag, vcr: vcr_option) do
+  describe("#id") do
     let(:github_link) { "https://github.com/facebook/react/issues/9218" }
-
     setup { Liquid::Template.register_tag("github", GithubTag) }
-
     def generate_github_issue(link)
       Liquid::Template.parse("{% github #{link} %}")
     end
 
-    it "rejects github link without domain" do
+    it("rejects github link without domain") do
       expect do
         generate_github_issue("/react/issues/9193")
-      end.to raise_error(StandardError)
+      end.to(raise_error(StandardError))
     end
 
-    it "rejects invalid github issue link" do
+    it("rejects invalid github issue link") do
       expect do
         generate_github_issue("https://github.com/issues/9193")
-      end.to raise_error(StandardError)
+      end.to(raise_error(StandardError))
     end
 
-    it "renders properly" do
+    it("renders properly") do
       output = generate_github_issue(github_link).render
+
       # NB: this approvals test is a little harder to update
       # because a legitimate github access token is required for octokit
       # which is then captured via vcr.

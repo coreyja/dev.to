@@ -3,6 +3,7 @@ module ReverseMarkdown
     class CustomPre < Base
       def convert(node, state = {})
         content = treat_children(node, state)
+
         if ReverseMarkdown.config.github_flavored
           "\n```#{language(node)}\n" << content << "\n```\n"
         else
@@ -37,6 +38,6 @@ module ReverseMarkdown
       end
     end
 
-    register :pre, CustomPre.new
+    register(:pre, CustomPre.new)
   end
 end

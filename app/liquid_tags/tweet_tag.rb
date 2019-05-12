@@ -1,7 +1,6 @@
 class TweetTag < LiquidTagBase
-  include ActionView::Helpers::AssetTagHelper
-  attr_reader :tweet
-
+  include(ActionView::Helpers::AssetTagHelper)
+  attr_reader(:tweet)
   def initialize(tag_name, id, tokens)
     super
     @id = parse_id(id)
@@ -14,6 +13,7 @@ class TweetTag < LiquidTagBase
 
     if @tweet.extended_entities_serialized.present? && @tweet.extended_entities_serialized[:media] && @tweet.extended_entities_serialized[:media].size == 1
       media_item = @tweet.extended_entities_serialized[:media].first
+
       if media_item[:type] == "animated_gif" || media_item[:type] == "video"
         play_butt = image_tag("/assets/play-butt.svg", class: "ltag__twitter-tweet__play-butt", alt: "Play butt")
         preview_div = "<div class='ltag__twitter-tweet__media--video-preview'><img src='#{media_item[:media_url_https]}'/>#{play_butt}</div>"
@@ -22,7 +22,9 @@ class TweetTag < LiquidTagBase
       else
         media_div = "<div class='ltag__twitter-tweet__media'><img src='#{media_item[:media_url_https]}' /></div>"
       end
+
     elsif @tweet.extended_entities_serialized.present? && @tweet.extended_entities_serialized[:media] && @tweet.extended_entities_serialized[:media].size > 1
+
       # Currently only showing first pic. TODO: show 2-4 pics. But lots of work.
       media_item = @tweet.extended_entities_serialized[:media].first
       media_div = "<div class='ltag__twitter-tweet__media ltag__twitter-tweet__media__two-pics'><img src='#{media_item[:media_url_https]}' /></div>"
@@ -33,51 +35,26 @@ class TweetTag < LiquidTagBase
       quote_div = "<div class='ltag__twitter-tweet__quote'><div class='ltag__twitter-tweet__quote__header'><span class='ltag__twitter-tweet__quote__header__name'>#{quoted_status[:user][:name]}</span> @#{quoted_status[:user][:screen_name]}</div>#{quoted_status[:full_text]}</div>"
     end
 
-    "<blockquote "\
-      'class="ltag__twitter-tweet" data-url="https://twitter.com/' + @tweet.twitter_username + "/status/" + @id + '">'\
-      +media_div + \
-      '<div class="ltag__twitter-tweet__main" data-url="https://twitter.com/' + @tweet.twitter_username + "/status/" + @id + '">'\
-      '<div class="ltag__twitter-tweet__header">'\
-      '<img class="ltag__twitter-tweet__profile-image" src="' + @tweet.full_fetched_object_serialized[:user][:profile_image_url_https] + '"/>'\
-      '<div class="ltag__twitter-tweet__full-name">' + @tweet.twitter_name + "</div>"\
-      '<div class="ltag__twitter-tweet__username">@' + @tweet.twitter_username + "</div>"\
-      '<div class="ltag__twitter-tweet__twitter-logo">'\
-      '<img src="' + ActionController::Base.helpers.asset_path("twitter.svg") + '" />'\
-      "</div>"\
-      "</div>"\
-      '<div class="ltag__twitter-tweet__body">' + @tweet.processed_text.html_safe + "</div>"\
-      '<div class="ltag__twitter-tweet__date">' + @tweet.tweeted_at.strftime("%H:%M %p - %d %b %Y") + "</div>"\
-      +quote_div + \
-      '<div class="ltag__twitter-tweet__actions">'\
-        '<a href= "https://twitter.com/intent/tweet?in_reply_to=' + @id + '" class="ltag__twitter-tweet__actions__button">' + image_tag("/assets/twitter-reply-action.svg", alt: "Twitter reply action") + "</a>"\
-        '<a href= "https://twitter.com/intent/retweet?tweet_id=' + @id + '" class="ltag__twitter-tweet__actions__button">' + image_tag("/assets/twitter-retweet-action.svg", alt: "Twitter retweet action") + "</a>" + @tweet.retweet_count.to_s + \
-      '<a href= "https://twitter.com/intent/like?tweet_id=' + @id + '" class="ltag__twitter-tweet__actions__button">' + image_tag("/assets/twitter-like-action.svg", alt: "Twitter like action") + "</a>" + @tweet.favorite_count.to_s + \
-      "</div>"\
-      "</div>"\
-    "</blockquote>"
+    "<blockquote " \
+    "class=\"ltag__twitter-tweet\" data-url=\"https://twitter.com/" + @tweet.twitter_username + "/status/" + @id + "\">" + media_div + "<div class=\"ltag__twitter-tweet__main\" data-url=\"https://twitter.com/" + @tweet.twitter_username + "/status/" + @id + "\">" \
+                                                                                                                                                                                                                                                                 "<div class=\"ltag__twitter-tweet__header\">" \
+                                                                                                                                                                                                                                                                 "<img class=\"ltag__twitter-tweet__profile-image\" src=\"" + @tweet.full_fetched_object_serialized[:user][:profile_image_url_https] + "\"/>" \
+                                                                                                                                                                                                                                                                                                                                                                                                       "<div class=\"ltag__twitter-tweet__full-name\">" + @tweet.twitter_name + "</div>" \
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                "<div class=\"ltag__twitter-tweet__username\">@" + @tweet.twitter_username + "</div>" \
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             "<div class=\"ltag__twitter-tweet__twitter-logo\">" \
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             "<img src=\"" + ActionController::Base.helpers.asset_path("twitter.svg") + "\" />" \
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        "</div>" \
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        "</div>" \
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        "<div class=\"ltag__twitter-tweet__body\">" + @tweet.processed_text.html_safe + "</div>" \
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        "<div class=\"ltag__twitter-tweet__date\">" + @tweet.tweeted_at.strftime("%H:%M %p - %d %b %Y") + "</div>" + quote_div + "<div class=\"ltag__twitter-tweet__actions\">" \
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 "<a href= \"https://twitter.com/intent/tweet?in_reply_to=" + @id + "\" class=\"ltag__twitter-tweet__actions__button\">" + image_tag("/assets/twitter-reply-action.svg", alt: "Twitter reply action") + "</a>" \
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        "<a href= \"https://twitter.com/intent/retweet?tweet_id=" + @id + "\" class=\"ltag__twitter-tweet__actions__button\">" + image_tag("/assets/twitter-retweet-action.svg", alt: "Twitter retweet action") + "</a>" + @tweet.retweet_count.to_s + "<a href= \"https://twitter.com/intent/like?tweet_id=" + @id + "\" class=\"ltag__twitter-tweet__actions__button\">" + image_tag("/assets/twitter-like-action.svg", alt: "Twitter like action") + "</a>" + @tweet.favorite_count.to_s + "</div>" \
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              "</div>" \
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              "</blockquote>"
   end
 
   def self.script
-    'var videoPreviews = document.getElementsByClassName("ltag__twitter-tweet__media__video-wrapper");
-      [].forEach.call(videoPreviews, function(el){
-        el.onclick= function(e){
-          var divHeight = el.offsetHeight;
-          el.style.maxHeight = divHeight + "px";
-          el.getElementsByClassName("ltag__twitter-tweet__media--video-preview")[0].style.display = "none";
-          el.getElementsByClassName("ltag__twitter-tweet__video")[0].style.display = "block";
-          el.getElementsByTagName("video")[0].play();
-        }
-      })
-      var tweets = document.getElementsByClassName("ltag__twitter-tweet__main");
-      [].forEach.call(tweets, function(tweet){
-        tweet.onclick= function(e){
-          if (e.target.nodeName == "A" || e.target.parentElement.nodeName == "A"){
-            return;
-          }
-          window.open(tweet.dataset.url,"_blank");
-        }
-      });
-      '
+    "var videoPreviews = document.getElementsByClassName(\"ltag__twitter-tweet__media__video-wrapper\");\n      [].forEach.call(videoPreviews, function(el){\n        el.onclick= function(e){\n          var divHeight = el.offsetHeight;\n          el.style.maxHeight = divHeight + \"px\";\n          el.getElementsByClassName(\"ltag__twitter-tweet__media--video-preview\")[0].style.display = \"none\";\n          el.getElementsByClassName(\"ltag__twitter-tweet__video\")[0].style.display = \"block\";\n          el.getElementsByTagName(\"video\")[0].play();\n        }\n      })\n      var tweets = document.getElementsByClassName(\"ltag__twitter-tweet__main\");\n      [].forEach.call(tweets, function(tweet){\n        tweet.onclick= function(e){\n          if (e.target.nodeName == \"A\" || e.target.parentElement.nodeName == \"A\"){\n            return;\n          }\n          window.open(tweet.dataset.url,\"_blank\");\n        }\n      });\n      "
   end
 
   private
@@ -85,11 +62,11 @@ class TweetTag < LiquidTagBase
   def parse_id(input)
     input_no_space = input.delete(" ")
     raise StandardError, "Invalid Twitter Id" unless valid_id?(input_no_space)
-
     input_no_space
   end
 
   def valid_id?(id)
+
     # id must be all numbers under 20 characters
     /^\d{10,20}$/.match?(id)
   end

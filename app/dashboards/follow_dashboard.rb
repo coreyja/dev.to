@@ -15,7 +15,7 @@ class FollowDashboard < Administrate::BaseDashboard
     id: Field::Number,
     blocked: Field::Boolean,
     created_at: Field::DateTime,
-    updated_at: Field::DateTime
+    updated_at: Field::DateTime,
   }.freeze
 
   # COLLECTION_ATTRIBUTES
@@ -23,38 +23,14 @@ class FollowDashboard < Administrate::BaseDashboard
   #
   # By default, it's limited to four items to reduce clutter on index pages.
   # Feel free to add, remove, or rearrange items.
-  COLLECTION_ATTRIBUTES = %i[
-    created_at
-    followable_type
-    follower
-    blocked
-  ].freeze
+  COLLECTION_ATTRIBUTES = %i[created_at followable_type follower blocked].freeze
 
   # SHOW_PAGE_ATTRIBUTES
   # an array of attributes that will be displayed on the model's show page.
-  SHOW_PAGE_ATTRIBUTES = %i[
-    followable_type
-    followable_id
-    follower
-    id
-    blocked
-    created_at
-    updated_at
-  ].freeze
+  SHOW_PAGE_ATTRIBUTES = %i[followable_type followable_id follower id blocked created_at updated_at].freeze
 
   # FORM_ATTRIBUTES
   # an array of attributes that will be displayed
   # on the model's form (`new` and `edit`) pages.
-  FORM_ATTRIBUTES = %i[
-    followable_id
-    follower
-    blocked
-  ].freeze
-
-  # Overwrite this method to customize how follows are displayed
-  # across all pages of the admin dashboard.
-  #
-  # def display_resource(follow)
-  #   "Follow ##{follow.id}"
-  # end
+  FORM_ATTRIBUTES = %i[followable_id follower blocked].freeze
 end

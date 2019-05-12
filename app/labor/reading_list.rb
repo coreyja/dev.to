@@ -1,15 +1,11 @@
 class ReadingList
-  attr_accessor :user
+  attr_accessor(:user)
   def initialize(user)
     @user = user
   end
 
   def get
-    Article.
-      joins(:reactions).
-      includes(:user).
-      where(reactions: reaction_criteria).
-      order("reactions.created_at DESC")
+    Article.joins(:reactions).includes(:user).where(reactions: reaction_criteria).order("reactions.created_at DESC")
   end
 
   def cached_ids_of_articles
@@ -27,6 +23,10 @@ class ReadingList
   end
 
   def reaction_criteria
-    { user_id: user.id, reactable_type: "Article", category: "readinglist" }
+    {
+      user_id: user.id,
+      reactable_type: "Article",
+      category: "readinglist",
+    }
   end
 end

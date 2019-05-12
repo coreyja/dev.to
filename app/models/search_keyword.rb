@@ -1,12 +1,11 @@
 class SearchKeyword < ApplicationRecord
-  validates :keyword, presence: true
-  validates :google_result_path, presence: true
-  validates :google_position, presence: true
-  validates :google_volume, presence: true
-  validates :google_difficulty, presence: true
-  validates :google_checked_at, presence: true
-  validate :path_format
-
+  validates(:keyword, presence: true)
+  validates(:google_result_path, presence: true)
+  validates(:google_position, presence: true)
+  validates(:google_volume, presence: true)
+  validates(:google_difficulty, presence: true)
+  validates(:google_checked_at, presence: true)
+  validate(:path_format)
   private
 
   def path_format

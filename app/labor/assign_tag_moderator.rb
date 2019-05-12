@@ -1,6 +1,6 @@
 module AssignTagModerator
   def self.add_trusted_role(user)
-    user.add_role :trusted
+    user.add_role(:trusted)
     user.update(email_community_mod_newsletter: true)
     MailchimpBot.new(user).manage_community_moderator_list
   end
@@ -16,6 +16,7 @@ module AssignTagModerator
   end
 
   def self.add_tag_moderators(user_ids, tag_ids)
+
     user_ids.each_with_index do |user_id, index|
       user = User.find(user_id)
       tag = Tag.find(tag_ids[index])

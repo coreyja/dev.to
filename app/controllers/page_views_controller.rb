@@ -2,45 +2,39 @@ class PageViewsController < ApplicationController
   # No policy needed. All views are for all users
   def create
     if user_signed_in?
-      PageView.create(user_id: current_user.id,
-                      article_id: page_view_params[:article_id],
-                      referrer: page_view_params[:referrer],
-                      user_agent: page_view_params[:user_agent])
+      PageView.create(user_id: current_user.id, article_id: page_view_params[:article_id], referrer: page_view_params[:referrer], user_agent: page_view_params[:user_agent])
     else
-      PageView.create(counts_for_number_of_views: 10,
-                      article_id: page_view_params[:article_id],
-                      referrer: page_view_params[:referrer],
-                      user_agent: page_view_params[:user_agent])
+      PageView.create(counts_for_number_of_views: 10, article_id: page_view_params[:article_id], referrer: page_view_params[:referrer], user_agent: page_view_params[:user_agent])
     end
+
     update_article_page_views
-    head :ok
+    head(:ok)
   end
 
   def update
     if user_signed_in?
       page_view = PageView.where(article_id: params[:id], user_id: current_user.id).last
-      page_view ||= PageView.create(user_id: current_user.id,
-                                    article_id: params[:id]) # pageview is sometimes missing if failure on prior creation.
+      page_view ||= PageView.create(user_id: current_user.id, article_id: params[:id])
       page_view.update_column(:time_tracked_in_seconds, page_view.time_tracked_in_seconds + 15)
     end
-    head :ok
+
+    head(:ok)
   end
 
   private
 
   def update_article_page_views
-    return if Rails.env.production? && rand(8) != 1 # We don't need to update the article page views every time.
-
+    return if Rails.env.production? && rand(8) != 1
     @article = Article.find(page_view_params[:article_id])
     new_page_views_count = @article.page_views.sum(:counts_for_number_of_views)
     @article.update_column(:page_views_count, new_page_views_count) if new_page_views_count > @article.page_views_count
-    return if Rails.env.production? && rand(20) != 1 # We need to do this operation even less often.
-
+    return if Rails.env.production? && rand(20) != 1
     update_organic_page_views
   end
 
   def page_view_params
     params.require(:page_view).permit(%i[article_id referrer user_agent])
+
   end
 
   def update_organic_page_views

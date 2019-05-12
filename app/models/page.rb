@@ -1,16 +1,15 @@
 class Page < ApplicationRecord
-  validates :title, presence: true
-  validates :description, presence: true
-  validates :slug, presence: true, format: /\A[0-9a-z\-_]*\z/
-  validates :template, inclusion: { in: %w[contained full_within_layout full_page] }
-  validate :body_present
-
-  before_save :evaluate_markdown
-  before_save :bust_cache
-  before_validation :set_default_template
-
-  mount_uploader :social_image, ProfileImageUploader
-
+  validates(:title, presence: true)
+  validates(:description, presence: true)
+  validates(:slug, presence: true, format: /\A[0-9a-z\-_]*\z/)
+  validates(:template, inclusion: {
+    in: %w[contained full_within_layout full_page],
+  })
+  validate(:body_present)
+  before_save(:evaluate_markdown)
+  before_save(:bust_cache)
+  before_validation(:set_default_template)
+  mount_uploader(:social_image, ProfileImageUploader)
   private
 
   def evaluate_markdown
@@ -31,7 +30,7 @@ class Page < ApplicationRecord
   end
 
   def bust_cache
-    CacheBuster.new.bust "/page/"
-    CacheBuster.new.bust "/page/#{slug}?i=i"
+    CacheBuster.new.bust("/page/")
+    CacheBuster.new.bust("/page/#{slug}?i=i")
   end
 end

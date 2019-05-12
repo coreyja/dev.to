@@ -1,19 +1,19 @@
 require "rails_helper"
 
-RSpec.describe NullTag, type: :liquid_template do
-  describe "#initialize" do
+RSpec.describe(NullTag, type: :liquid_template) do
+  describe("#initialize") do
     tags = %w[assign capture case comment cycle for if ifchanged include unless]
-
-    setup { tags.each { |tag| Liquid::Template.register_tag(tag, NullTag) } }
-
+    setup {
+      tags.each { |tag| Liquid::Template.register_tag(tag, NullTag) }
+    }
     def generate_given_tag(tag)
       Liquid::Template.parse("{% #{tag} %}")
     end
 
-    context "when attempting the tags" do
-      it "prevents the tag from being used" do
+    context("when attempting the tags") do
+      it("prevents the tag from being used") do
         tags.each do |tag|
-          expect { generate_given_tag(tag) }.to raise_error(StandardError)
+          expect { generate_given_tag(tag) }.to(raise_error(StandardError))
         end
       end
     end

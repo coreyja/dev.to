@@ -1,9 +1,8 @@
 class Internal::ApplicationController < ApplicationController
-  before_action :authorize_admin
-
+  before_action(:authorize_admin)
   private
 
   def authorize_admin
-    authorize :admin, :minimal?
+    authorize(:admin, :minimal?)
   end
 end

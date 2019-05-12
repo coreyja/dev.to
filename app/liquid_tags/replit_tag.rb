@@ -5,9 +5,7 @@ class ReplitTag < LiquidTagBase
   end
 
   def render(_context)
-    '<div class="ltag__replit">
-      <iframe frameborder="0" height="550px" src="https://repl.it/' + @id + '?lite=true"></iframe>
-    </div>'
+    "<div class=\"ltag__replit\">\n      <iframe frameborder=\"0\" height=\"550px\" src=\"https://repl.it/" + @id + "?lite=true\"></iframe>\n    </div>"
   end
 
   private
@@ -15,7 +13,6 @@ class ReplitTag < LiquidTagBase
   def parse_id(input)
     input_no_space = input.delete(" ")
     raise StandardError, "Invalid repl.it Id" unless valid_id?(input_no_space)
-
     input_no_space
   end
 

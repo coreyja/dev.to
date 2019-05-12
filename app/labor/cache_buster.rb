@@ -1,31 +1,49 @@
 class CacheBuster
   TIMEFRAMES = [
-    [1.week.ago, "week"], [1.month.ago, "month"], [1.year.ago, "year"], [5.years.ago, "infinity"]
+    [
+      1.week.ago,
+      "week",
+    ],
+    [
+      1.month.ago,
+      "month",
+    ],
+    [
+      1.year.ago,
+      "year",
+    ],
+    [
+      5.years.ago,
+      "infinity",
+    ],
   ].freeze
-
   def bust(path)
     return unless Rails.env.production?
-
-    HTTParty.post("https://api.fastly.com/purge/https://dev.to#{path}",
-                  headers: { "Fastly-Key" => ApplicationConfig["FASTLY_API_KEY"] })
-    HTTParty.post("https://api.fastly.com/purge/https://dev.to#{path}?i=i",
-                  headers: { "Fastly-Key" => ApplicationConfig["FASTLY_API_KEY"] })
+    HTTParty.post("https://api.fastly.com/purge/https://dev.to#{path}", headers: {
+      "Fastly-Key" => ApplicationConfig["FASTLY_API_KEY"],
+    })
+    HTTParty.post("https://api.fastly.com/purge/https://dev.to#{path}?i=i", headers: {
+      "Fastly-Key" => ApplicationConfig["FASTLY_API_KEY"],
+    })
   end
 
   def bust_comment(commentable, username)
     bust("/") if Article.published.order("hotness_score DESC").limit(3).pluck(:id).include?(commentable.id)
-    if commentable.decorate.cached_tag_list_array.include?("discuss") &&
-        commentable.featured_number.to_i > 35.hours.ago.to_i
+
+    if commentable.decorate.cached_tag_list_array.include?("discuss") && commentable.featured_number.to_i > 35.hours.ago.to_i
       bust("/")
       bust("/?i=i")
       bust("?i=i")
     end
+
     bust("#{commentable.path}/comments/")
     bust(commentable.path.to_s)
+
     commentable.comments.find_each do |c|
       bust(c.path)
       bust(c.path + "?i=i")
     end
+
     bust("#{commentable.path}/comments/*")
     bust("/#{username}")
     bust("/#{username}/comments")
@@ -58,22 +76,25 @@ class CacheBuster
       bust("/")
       bust("?i=i")
     end
+
     if article.video.present? && article.featured_number.to_i > 10.days.ago.to_i
-      CacheBuster.new.bust "/videos"
-      CacheBuster.new.bust "/videos?i=i"
+      CacheBuster.new.bust("/videos")
+      CacheBuster.new.bust("/videos?i=i")
     end
+
     TIMEFRAMES.each do |timeframe|
-      if Article.published.where("published_at > ?", timeframe[0]).
-          order("positive_reactions_count DESC").limit(3).pluck(:id).include?(article.id)
+      if Article.published.where("published_at > ?", timeframe[0]).order("positive_reactions_count DESC").limit(3).pluck(:id).include?(article.id)
         bust("/top/#{timeframe[1]}")
         bust("/top/#{timeframe[1]}?i=i")
         bust("/top/#{timeframe[1]}/?i=i")
       end
     end
+
     if article.published && article.published_at > 1.hour.ago
       bust("/latest")
       bust("/latest?i=i")
     end
+
     bust("/") if Article.published.order("hotness_score DESC").limit(4).pluck(:id).include?(article.id)
   end
 
@@ -85,20 +106,20 @@ class CacheBuster
         bust("/t/#{tag}/latest")
         bust("/t/#{tag}/latest?i=i")
       end
+
       TIMEFRAMES.each do |timeframe|
-        if Article.published.where("published_at > ?", timeframe[0]).tagged_with(tag).
-            order("positive_reactions_count DESC").limit(3).pluck(:id).include?(article.id)
+        if Article.published.where("published_at > ?", timeframe[0]).tagged_with(tag).order("positive_reactions_count DESC").limit(3).pluck(:id).include?(article.id)
           bust("/top/#{timeframe[1]}")
           bust("/top/#{timeframe[1]}?i=i")
           bust("/top/#{timeframe[1]}/?i=i")
+
           12.times do |i|
             bust("/api/articles?tag=#{tag}&top=#{i}")
           end
         end
       end
-      if rand(2) == 1 &&
-          Article.published.tagged_with(tag).
-              order("hotness_score DESC").limit(2).pluck(:id).include?(article.id)
+
+      if rand(2) == 1 && Article.published.tagged_with(tag).order("hotness_score DESC").limit(2).pluck(:id).include?(article.id)
         bust("/t/#{tag}")
         bust("/t/#{tag}?i=i")
       end

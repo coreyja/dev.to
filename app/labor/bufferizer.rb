@@ -1,5 +1,5 @@
 class Bufferizer
-  attr_accessor :article, :text
+  attr_accessor(:article, :text)
   def initialize(article, text)
     @article = article
     @text = text
@@ -9,6 +9,7 @@ class Bufferizer
     article.tags.find_each do |tag|
       BufferUpdate.buff!(article.id, twitter_buffer_text, tag.buffer_profile_id_code, "twitter", tag.id) if tag.buffer_profile_id_code.present?
     end
+
     article.update(last_buffered: Time.current)
   end
 

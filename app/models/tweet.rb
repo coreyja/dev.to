@@ -1,20 +1,15 @@
 class Tweet < ApplicationRecord
-  include AlgoliaSearch
-
-  mount_uploader :profile_image, ProfileImageUploader
-
-  belongs_to :user, optional: true
-
-  serialize :mentioned_usernames_serialized
-  serialize :hashtags_serialized
-  serialize :urls_serialized
-  serialize :media_serialized
-  serialize :extended_entities_serialized
-  serialize :full_fetched_object_serialized
-
-  validates :twitter_id_code, presence: true
-  validates :full_fetched_object_serialized, presence: true
-
+  include(AlgoliaSearch)
+  mount_uploader(:profile_image, ProfileImageUploader)
+  belongs_to(:user, optional: true)
+  serialize(:mentioned_usernames_serialized)
+  serialize(:hashtags_serialized)
+  serialize(:urls_serialized)
+  serialize(:media_serialized)
+  serialize(:extended_entities_serialized)
+  serialize(:full_fetched_object_serialized)
+  validates(:twitter_id_code, presence: true)
+  validates(:full_fetched_object_serialized, presence: true)
   def self.find_or_fetch(twitter_id_code)
     find_by(twitter_id_code: twitter_id_code) || fetch(twitter_id_code)
   end
@@ -36,14 +31,15 @@ class Tweet < ApplicationRecord
     urls_serialized.each do |url|
       text.gsub!(url[:url], "<a href='#{url[:url]}'>#{url[:display_url]}</a>")
     end
+
     mentioned_usernames_serialized.each do |username|
       uname = username["screen_name"]
-      text.gsub!("@" + uname, "<a href='https://twitter.com/#{uname}'>#{'@' + uname}</a>")
+      text.gsub!("@" + uname, "<a href='https://twitter.com/#{uname}'>#{"@" + uname}</a>")
     end
+
     hashtags_serialized.each do |tag|
       tag_text = tag[:text]
-      text.gsub!("#" + tag_text,
-                 "<a href='https://twitter.com/hashtag/#{tag_text}'>#{'#' + tag_text}</a>")
+      text.gsub!("#" + tag_text, "<a href='https://twitter.com/hashtag/#{tag_text}'>#{"#" + tag_text}</a>")
     end
 
     if extended_entities_serialized && extended_entities_serialized[:media]
@@ -65,11 +61,13 @@ class Tweet < ApplicationRecord
 
     def make_tweet_from_api_object(tweeted)
       twitter_bot = TwitterBot.new(random_identity)
+
       tweeted = if tweeted.attrs[:retweeted_status]
-                  twitter_bot.client.status(tweeted.attrs[:retweeted_status][:id_str])
-                else
-                  tweeted
-                end
+        twitter_bot.client.status(tweeted.attrs[:retweeted_status][:id_str])
+      else
+        tweeted
+      end
+
       tweet = Tweet.where(twitter_id_code: tweeted.attrs[:id_str]).first_or_initialize
       tweet.twitter_uid = tweeted.user.id.to_s
       tweet.twitter_username = tweeted.user.screen_name.downcase
@@ -105,7 +103,7 @@ class Tweet < ApplicationRecord
       iden = Identity.where(provider: "twitter").last(250).sample
       {
         token: iden&.token || ApplicationConfig["TWITTER_KEY"],
-        secret: iden&.secret || ApplicationConfig["TWITTER_SECRET"]
+        secret: iden&.secret || ApplicationConfig["TWITTER_SECRET"],
       }
     end
   end

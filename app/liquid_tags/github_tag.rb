@@ -22,6 +22,7 @@ class GithubTag < LiquidTagBase
       gt = GithubTag::GithubReadmeTag.new(@link)
       gt.render
     end
+
   rescue StandardError => e
     raise StandardError, e.message
   end

@@ -1,14 +1,14 @@
 class MentorRelationship < ApplicationRecord
-  belongs_to :mentor, class_name: "User"
-  belongs_to :mentee, class_name: "User"
-  validates :mentor, presence: true
-  validates :mentee, presence: true
-  validate :check_for_same_user
-  validates :mentor_id, uniqueness: { scope: :mentee_id }
-
-  after_create :mutual_follow
-  after_create :send_emails
-
+  belongs_to(:mentor, class_name: "User")
+  belongs_to(:mentee, class_name: "User")
+  validates(:mentor, presence: true)
+  validates(:mentee, presence: true)
+  validate(:check_for_same_user)
+  validates(:mentor_id, uniqueness: {
+    scope: :mentee_id,
+  })
+  after_create(:mutual_follow)
+  after_create(:send_emails)
   def check_for_same_user
     errors.add(:mentor_relationship, "Mentor and Mentee cannot be the same person") if mentor_id == mentee_id
   end

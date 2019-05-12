@@ -1,10 +1,9 @@
 class ArticleMutesController < ApplicationController
-  after_action :verify_authorized
-
+  after_action(:verify_authorized)
   def update
     @article = Article.find_by(id: params[:id])
-    authorize @article
+    authorize(@article)
     @article.update(receive_notifications: permitted_attributes(@article)[:receive_notifications])
-    redirect_to "/dashboard"
+    redirect_to("/dashboard")
   end
 end

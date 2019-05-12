@@ -1,14 +1,19 @@
 class RatingVote < ApplicationRecord
-  belongs_to :article
-  belongs_to :user
-
-  validates :user_id, uniqueness: { scope: :article_id }
-  validates :group, inclusion: { in: %w[experience_level] }
-  validates :rating, numericality: { greater_than: 0.0, less_than_or_equal_to: 10.0 }
-  validate :permissions
-  counter_culture :article
-  counter_culture :user
-
+  belongs_to(:article)
+  belongs_to(:user)
+  validates(:user_id, uniqueness: {
+    scope: :article_id,
+  })
+  validates(:group, inclusion: {
+    in: %w[experience_level],
+  })
+  validates(:rating, numericality: {
+    greater_than: 0.0,
+    less_than_or_equal_to: 10.0,
+  })
+  validate(:permissions)
+  counter_culture(:article)
+  counter_culture(:user)
   def assign_article_rating
     ratings = article.rating_votes.where(group: group).pluck(:rating)
     average = ratings.sum / ratings.size

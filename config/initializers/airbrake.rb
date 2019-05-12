@@ -10,6 +10,7 @@ require "airbrake/delayed_job"
 # Configuration details:
 # https://github.com/airbrake/airbrake-ruby#configuration
 Airbrake.configure do |c|
+
   # You must set both project_id & project_key. To find your project_id and
   # project_key navigate to your project's General Settings and copy the values
   # from the right sidebar.
@@ -47,30 +48,28 @@ Airbrake.configure do |c|
   # Airbrake. By default, all "password" attributes will have their contents
   # replaced.
   # https://github.com/airbrake/airbrake-ruby#blacklist_keys
-  c.blacklist_keys = [/password/i, /authorization/i]
+  c.blacklist_keys = [
+    /password/i,
+    /authorization/i,
+  ]
+end
 
   # Alternatively, you can integrate with Rails' filter_parameters.
   # Read more: https://goo.gl/gqQ1xS
   # c.blacklist_keys = Rails.application.config.filter_parameters
-end
-
 # A filter that collects request body information. Enable it if you are sure you
 # don't send sensitive information to Airbrake in your body (such as passwords).
 # https://github.com/airbrake/airbrake#requestbodyfilter
 # Airbrake.add_filter(Airbrake::Rack::RequestBodyFilter.new)
-
 # Attaches thread & fiber local variables along with general thread information.
 # Airbrake.add_filter(Airbrake::Filters::ThreadFilter.new)
-
 # Attaches loaded dependencies to the notice object
 # (under context/versions/dependencies).
 # Airbrake.add_filter(Airbrake::Filters::DependencyFilter.new)
-
 # If you want to convert your log messages to Airbrake errors, we offer an
 # integration with the Logger class from stdlib.
 # https://github.com/airbrake/airbrake#logger
 # Rails.logger = Airbrake::AirbrakeLogger.new(Rails.logger)
-
 Airbrake.add_filter do |notice|
   notice.ignore! if notice[:errors].any? { |error| error[:type] == "Pundit::NotAuthorizedError" }
   notice.ignore! if notice[:errors].any? { |error| error[:type] == "ActiveRecord::RecordNotFound" }

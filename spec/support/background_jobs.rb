@@ -7,5 +7,5 @@ module BackgroundJobs
 end
 
 RSpec.configure do |config|
-  config.include BackgroundJobs
+  config.include(BackgroundJobs)
 end

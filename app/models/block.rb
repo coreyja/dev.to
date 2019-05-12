@@ -1,14 +1,10 @@
 class Block < ApplicationRecord
-  attr_accessor :publish_now
-
-  belongs_to :user
-
-  validate :permissions
-
-  before_save :process_html
-  before_save :process_javascript
-  before_save :process_css
-
+  attr_accessor(:publish_now)
+  belongs_to(:user)
+  validate(:permissions)
+  before_save(:process_html)
+  before_save(:process_javascript)
+  before_save(:process_css)
   def publish!
     self.published_html = processed_html
     self.published_javascript = processed_javascript
@@ -35,7 +31,6 @@ class Block < ApplicationRecord
 
   def permissions
     return if user&.has_role?(:super_admin)
-
     errors.add(:commentable_id, "is not valid.")
   end
 end

@@ -1,6 +1,5 @@
 class StackblitzTag < LiquidTagBase
   PARTIAL = "liquids/stackblitz".freeze
-
   def initialize(tag_name, id, tokens)
     super
     @id = parse_id(id)
@@ -10,15 +9,12 @@ class StackblitzTag < LiquidTagBase
   end
 
   def render(_context)
-    ActionController::Base.new.render_to_string(
-      partial: PARTIAL,
-      locals: {
-        id: @id,
-        view: @view,
-        file: @file,
-        height: @height
-      },
-    )
+    ActionController::Base.new.render_to_string(partial: PARTIAL, locals: {
+      id: @id,
+      view: @view,
+      file: @file,
+      height: @height,
+    })
   end
 
   private
@@ -30,7 +26,6 @@ class StackblitzTag < LiquidTagBase
   def parse_id(input)
     input_no_space = input.split(" ").first
     raise StandardError, "Invalid Stackblitz Id" unless valid_id?(input_no_space)
-
     input_no_space
   end
 
@@ -40,7 +35,6 @@ class StackblitzTag < LiquidTagBase
     # Validation
     validated_views = input_split.map { |o| validator.call(o) }.reject(&:nil?)
     raise StandardError, "Invalid Options" unless validated_views.length.between?(0, 1)
-
     validated_views.length.zero? ? "" : validated_views.join("").to_s
   end
 

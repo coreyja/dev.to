@@ -44,7 +44,7 @@ class UserDashboard < Administrate::BaseDashboard
     saw_onboarding: Field::Boolean,
     following_tags_count: Field::Number,
     monthly_dues: Field::Number,
-    stripe_id_code: Field::String
+    stripe_id_code: Field::String,
   }.freeze
 
   # COLLECTION_ATTRIBUTES
@@ -52,14 +52,7 @@ class UserDashboard < Administrate::BaseDashboard
   #
   # By default, it's limited to four items to reduce clutter on index pages.
   # Feel free to add, remove, or rearrange items.
-  COLLECTION_ATTRIBUTES = %i[
-    profile_image
-    id
-    username
-    twitter_username
-    github_username
-    name
-  ].freeze
+  COLLECTION_ATTRIBUTES = %i[profile_image id username twitter_username github_username name].freeze
 
   # SHOW_PAGE_ATTRIBUTES
   # an array of attributes that will be displayed on the model's show page.
@@ -68,29 +61,7 @@ class UserDashboard < Administrate::BaseDashboard
   # FORM_ATTRIBUTES
   # an array of attributes that will be displayed
   # on the model's form (`new` and `edit`) pages.
-  FORM_ATTRIBUTES = %i[
-    organization
-    name
-    username
-    twitter_username
-    github_username
-    profile_image
-    org_admin
-    summary
-    website_url
-    facebook_url
-    behance_url
-    dribbble_url
-    medium_url
-    gitlab_url
-    linkedin_url
-    twitch_url
-    bg_color_hex
-    text_color_hex
-    reputation_modifier
-    feed_url
-    saw_onboarding
-  ].freeze
+  FORM_ATTRIBUTES = %i[organization name username twitter_username github_username profile_image org_admin summary website_url facebook_url behance_url dribbble_url medium_url gitlab_url linkedin_url twitch_url bg_color_hex text_color_hex reputation_modifier feed_url saw_onboarding].freeze
 
   # Overwrite this method to customize how users are displayed
   # across all pages of the admin dashboard.

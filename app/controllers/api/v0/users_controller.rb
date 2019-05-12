@@ -7,6 +7,7 @@ module Api
           @users = User.where(username: usernames)
           return
         end
+
         if params[:state] == "follow_suggestions"
           @users = Suggester::Users::Recent.new(current_user).suggest
         elsif params[:state] == "sidebar_suggestions"
@@ -17,18 +18,18 @@ module Api
 
       def show
         @user = if params[:id] == "by_username"
-                  User.find_by(username: params[:url])
-                else
-                  User.find(params[:id])
-                end
+          User.find_by(username: params[:url])
+        else
+          User.find(params[:id])
+        end
       end
 
       def less_than_one_day_old?(user)
         range = 1.day.ago.beginning_of_day..Time.current
-        user_identity_age = user.github_created_at ||
-          user.twitter_created_at || 8.days.ago
+        user_identity_age = user.github_created_at || user.twitter_created_at || 8.days.ago
+
         # last one is a fallback in case both are nil
-        range.cover? user_identity_age
+        range.cover?(user_identity_age)
       end
     end
   end

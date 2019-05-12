@@ -1,6 +1,5 @@
 class EmojiConverter
-  attr_reader :html
-
+  attr_reader(:html)
   def self.call(html)
     new(html).convert
   end
@@ -11,9 +10,10 @@ class EmojiConverter
 
   def convert
     html.gsub!(/:([\w+-]+):/) do |match|
-      emoji = Emoji.find_by_alias(Regexp.last_match(1)) # rubocop:disable Rails/DynamicFindBy
+      emoji = Emoji.find_by_alias(Regexp.last_match(1))
       emoji.present? ? emoji.raw : match
     end
+
     html
   end
 end

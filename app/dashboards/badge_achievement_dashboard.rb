@@ -17,7 +17,7 @@ class BadgeAchievementDashboard < Administrate::BaseDashboard
     id: Field::Number,
     rewarder_id: UserIdField,
     created_at: Field::DateTime,
-    updated_at: Field::DateTime
+    updated_at: Field::DateTime,
   }.freeze
 
   # COLLECTION_ATTRIBUTES
@@ -25,39 +25,14 @@ class BadgeAchievementDashboard < Administrate::BaseDashboard
   #
   # By default, it's limited to four items to reduce clutter on index pages.
   # Feel free to add, remove, or rearrange items.
-  COLLECTION_ATTRIBUTES = %i[
-    user
-    badge
-    rewarder
-    id
-  ].freeze
+  COLLECTION_ATTRIBUTES = %i[user badge rewarder id].freeze
 
   # SHOW_PAGE_ATTRIBUTES
   # an array of attributes that will be displayed on the model's show page.
-  SHOW_PAGE_ATTRIBUTES = %i[
-    id
-    user
-    badge
-    rewarding_context_message
-    rewarder
-    created_at
-    updated_at
-  ].freeze
+  SHOW_PAGE_ATTRIBUTES = %i[id user badge rewarding_context_message rewarder created_at updated_at].freeze
 
   # FORM_ATTRIBUTES
   # an array of attributes that will be displayed
   # on the model's form (`new` and `edit`) pages.
-  FORM_ATTRIBUTES = %i[
-    user_id
-    rewarding_context_message_markdown
-    badge
-    rewarder_id
-  ].freeze
-
-  # Overwrite this method to customize how badge achievements are displayed
-  # across all pages of the admin dashboard.
-  #
-  # def display_resource(badge_achievement)
-  #   "BadgeAchievement ##{badge_achievement.id}"
-  # end
+  FORM_ATTRIBUTES = %i[user_id rewarding_context_message_markdown badge rewarder_id].freeze
 end

@@ -1,5 +1,5 @@
 class AddUrlToAdvertisments < ActiveRecord::Migration
   def change
-    add_column :advertisements, :url, :text
+    add_column(:advertisements, :url, :text)
   end
 end

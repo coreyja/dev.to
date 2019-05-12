@@ -1,6 +1,5 @@
 class CouponGenerator
-  attr_accessor :id, :version
-
+  attr_accessor(:id, :version)
   def initialize(id, version)
     @id = id
     @version = version
@@ -13,8 +12,10 @@ class CouponGenerator
   private
 
   def lambda_generated_code
-    response = FunctionCaller.new("blackbox-production-couponCode",
-                                  { inputNumber: id, version: version }.to_json).call
+    response = FunctionCaller.new("blackbox-production-couponCode", {
+      inputNumber: id,
+      version: version,
+    }.to_json).call
     response.to_s(36)
   end
 end

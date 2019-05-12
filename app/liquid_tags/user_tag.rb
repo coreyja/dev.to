@@ -1,13 +1,13 @@
 class UserTag < LiquidTagBase
-  include ApplicationHelper
-  include ActionView::Helpers::TagHelper
-  attr_reader :user
-
+  include(ApplicationHelper)
+  include(ActionView::Helpers::TagHelper)
+  attr_reader(:user)
   def initialize(_tag_name, user, _tokens)
     @user = parse_username_to_user(user)
   end
 
   def render(_context)
+
     # looks like link liquid tag
     <<-HTML
     <div class="ltag__user ltag__user__id__#{@user.id}" style="border-color:#{@user.decorate.darker_color};box-shadow: 3px 3px 0px #{@user.decorate.darker_color}">
@@ -15,7 +15,7 @@ class UserTag < LiquidTagBase
         .ltag__user__id__#{@user.id} .follow-action-button{
           background-color: #{user_colors(@user)[:bg]} !important;
           color: #{user_colors(@user)[:text]} !important;
-          border-color: #{user_colors(@user)[:bg].casecmp('#ffffff').zero? ? user_colors(@user)[:text] : user_colors(@user)[:bg]} !important;
+          border-color: #{user_colors(@user)[:bg].casecmp("#ffffff").zero? ? user_colors(@user)[:text] : user_colors(@user)[:bg]} !important;
         }
       </style>
       <a href="/#{@user.username}" class="ltag__user__link profile-image-link">
@@ -32,7 +32,7 @@ class UserTag < LiquidTagBase
           </div>
         </div>
     </div>
-    HTML
+HTML
   end
 
   private
@@ -45,38 +45,34 @@ class UserTag < LiquidTagBase
     input_no_space = input.delete(" ")
     user = User.find_by(username: input_no_space)
     raise StandardError, "invalid username" if user.nil?
-
     user
   end
 
   def twitter_link
     return if @user.twitter_username.blank?
-
     <<-HTML
     <a href="https://twitter.com/#{@user.twitter_username}" target="_blank" rel="noopener">
-      #{image_tag('/assets/twitter-logo.svg', class: 'icon-img', alt: 'twitter')} #{@user.twitter_username}
+      #{image_tag("/assets/twitter-logo.svg", class: "icon-img", alt: "twitter")} #{@user.twitter_username}
     </a>
-    HTML
+HTML
   end
 
   def github_link
     return if @user.github_username.blank?
-
     <<-HTML
     <a href="https://github.com/#{@user.github_username}" target="_blank" rel="noopener">
-      #{image_tag('/assets/github-logo.svg', class: 'icon-img', alt: 'github')} #{@user.github_username}
+      #{image_tag("/assets/github-logo.svg", class: "icon-img", alt: "github")} #{@user.github_username}
     </a>
-    HTML
+HTML
   end
 
   def website_link
     return if @user.website_url.blank?
-
     <<-HTML
     <a href="#{@user.website_url}" target="_blank" rel="noopener">
-      #{image_tag('/assets/link.svg', class: 'icon-img', alt: 'website link')} #{beautified_url(@user.website_url)}
+      #{image_tag("/assets/link.svg", class: "icon-img", alt: "website link")} #{beautified_url(@user.website_url)}
     </a>
-    HTML
+HTML
   end
 end
 

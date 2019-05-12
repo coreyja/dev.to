@@ -1,15 +1,14 @@
 class Internal::BroadcastsController < Internal::ApplicationController
-  layout "internal"
-
+  layout("internal")
   def create
     @broadcast = Broadcast.new(broadcast_params)
-    redirect_to "/internal/broadcasts"
+    redirect_to("/internal/broadcasts")
   end
 
   def update
     @broadcast = Broadcast.find(params[:id])
     @broadcast.update(broadcast_params)
-    redirect_to "/internal/broadcasts"
+    redirect_to("/internal/broadcasts")
   end
 
   def new
@@ -28,7 +27,5 @@ class Internal::BroadcastsController < Internal::ApplicationController
 
   def broadcast_params
     params.permit(:title, :processed_html, :type_of, :sent)
-    # left out body_markdown and processed_html attributes
-    #   until we decide we're using them
   end
 end

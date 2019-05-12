@@ -25,7 +25,7 @@ class SpeakerdeckTag < LiquidTagBase
           webkitallowfullscreen="true"
           width="710"></iframe>
       </div>
-    HTML
+HTML
     finalize_html(html)
   end
 
@@ -34,7 +34,6 @@ class SpeakerdeckTag < LiquidTagBase
   def parse_id(input)
     input_no_space = input.delete(" ")
     raise StandardError, "Invalid Speakerdeck Id" unless valid_id?(input_no_space)
-
     input_no_space
   end
 

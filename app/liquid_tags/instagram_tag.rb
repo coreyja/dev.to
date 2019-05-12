@@ -17,7 +17,7 @@ class InstagramTag < LiquidTagBase
       </iframe>
       <script async defer src="https://platform.instagram.com/en_US/embeds.js"></script>
     </div>
-    HTML
+HTML
     finalize_html(html)
   end
 
@@ -26,7 +26,6 @@ class InstagramTag < LiquidTagBase
   def parse_id(input)
     input_no_space = input.delete(" ")
     raise StandardError, "Invalid Instagram Id" unless valid_id?(input_no_space)
-
     input_no_space
   end
 

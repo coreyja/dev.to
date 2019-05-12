@@ -1,6 +1,5 @@
 class DigestMailer < ApplicationMailer
-  default from: "DEV Digest <yo@dev.to>"
-
+  default(from: "DEV Digest <yo@dev.to>")
   def digest_email(user, articles)
     @user = user
     @articles = articles.first(6)
@@ -17,14 +16,29 @@ class DigestMailer < ApplicationMailer
 
   def adjusted_title(article)
     title = article.title.strip
-    "\"#{title}\"" unless title.start_with? '"'
+    "\"#{title}\"" unless title.start_with?("\"")
   end
 
   def random_emoji
-    ["🤓", "🎉", "🙈", "🔥", "💬", "👋", "👏", "🐶", "🦁", "🐙", "🦄", "❤️", "😇"].shuffle.take(3).join
+    [
+      "🤓",
+      "🎉",
+      "🙈",
+      "🔥",
+      "💬",
+      "👋",
+      "👏",
+      "🐶",
+      "🦁",
+      "🐙",
+      "🦄",
+      "❤️",
+      "😇",
+    ].shuffle.take(3).join
   end
 
   def email_end_phrase
+
     # "more trending DEV posts" won the previous split test
     # Included more often as per explore-exploit algorithm
     [

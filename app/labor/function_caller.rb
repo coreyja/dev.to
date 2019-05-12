@@ -16,5 +16,5 @@ class FunctionCaller
 
   private
 
-  attr_reader :function_name, :payload, :aws_lambda_client
+  attr_reader(:function_name, :payload, :aws_lambda_client)
 end

@@ -1,6 +1,5 @@
 class UserStates
-  attr_accessor :user
-
+  attr_accessor(:user)
   def initialize(user)
     @user = user
   end
@@ -13,7 +12,7 @@ class UserStates
         fill_out_your_profile: fill_out_your_profile,
         leave_your_first_reaction: leave_reactions,
         follow_your_first_dev: follow_people,
-        leave_your_first_comment: leave_comments
+        leave_your_first_comment: leave_comments,
       }
     end
   end

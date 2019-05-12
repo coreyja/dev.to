@@ -5,5 +5,5 @@ module WithinBlockIsExpected
 end
 
 RSpec.configure do |config|
-  config.include WithinBlockIsExpected
+  config.include(WithinBlockIsExpected)
 end

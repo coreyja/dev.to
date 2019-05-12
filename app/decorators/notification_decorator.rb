@@ -1,6 +1,5 @@
 class NotificationDecorator < Draper::Decorator
   delegate_all
-
   def mocked_object(type)
     struct = Struct.new(:name, :id) do
       def class
@@ -8,6 +7,7 @@ class NotificationDecorator < Draper::Decorator
         second_struct.new(name)
       end
     end
+
     struct.new(json_data[type]["class"]["name"], json_data[type]["id"])
   end
 

@@ -39,7 +39,7 @@ class OrganizationDashboard < Administrate::BaseDashboard
     sponsorship_tagline: Field::Text,
     is_gold_sponsor: Field::Boolean,
     sponsorship_blurb_html: Field::Text,
-    sponsorship_featured_number: Field::Number
+    sponsorship_featured_number: Field::Number,
   }.freeze
 
   # COLLECTION_ATTRIBUTES
@@ -47,13 +47,7 @@ class OrganizationDashboard < Administrate::BaseDashboard
   #
   # By default, it's limited to four items to reduce clutter on index pages.
   # Feel free to add, remove, or rearrange items.
-  COLLECTION_ATTRIBUTES = %i[
-    profile_image
-    name
-    url
-    twitter_username
-    approved
-  ].freeze
+  COLLECTION_ATTRIBUTES = %i[profile_image name url twitter_username approved].freeze
 
   # SHOW_PAGE_ATTRIBUTES
   # an array of attributes that will be displayed on the model's show page.
@@ -62,37 +56,7 @@ class OrganizationDashboard < Administrate::BaseDashboard
   # FORM_ATTRIBUTES
   # an array of attributes that will be displayed
   # on the model's form (`new` and `edit`) pages.
-  FORM_ATTRIBUTES = %i[
-    name
-    slug
-    summary
-    tag_line
-    profile_image
-    nav_image
-    dark_nav_image
-    url
-    bg_color_hex
-    text_color_hex
-    twitter_username
-    github_username
-    jobs_url
-    jobs_email
-    address
-    city
-    state
-    zip_code
-    country
-    approved
-    cta_button_text
-    cta_button_url
-    cta_body_markdown
-    sponsorship_url
-    sponsorship_tagline
-    sponsorship_blurb_html
-    is_gold_sponsor
-    sponsorship_featured_number
-  ].freeze
-
+  FORM_ATTRIBUTES = %i[name slug summary tag_line profile_image nav_image dark_nav_image url bg_color_hex text_color_hex twitter_username github_username jobs_url jobs_email address city state zip_code country approved cta_button_text cta_button_url cta_body_markdown sponsorship_url sponsorship_tagline sponsorship_blurb_html is_gold_sponsor sponsorship_featured_number].freeze
   def display_resource(organization)
     organization.name
   end

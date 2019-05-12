@@ -17,7 +17,7 @@ class JSFiddleTag < LiquidTagBase
         allowfullscreen
         allowtransparency="true">
       </iframe>
-    HTML
+HTML
     finalize_html(html)
   end
 
@@ -34,7 +34,6 @@ class JSFiddleTag < LiquidTagBase
     # Validation
     validated_options = options.map { |o| valid_option(o) }.reject(&:nil?)
     raise StandardError, "Invalid Options" unless options.empty? || !validated_options.empty?
-
     validated_options.length.zero? ? "" : validated_options.join(",").concat("/")
   end
 
@@ -42,7 +41,6 @@ class JSFiddleTag < LiquidTagBase
     stripped_link = ActionController::Base.helpers.strip_tags(link)
     the_link = stripped_link.split(" ").first
     raise StandardError, "Invalid JSFiddle URL" unless valid_link?(the_link)
-
     the_link
   end
 

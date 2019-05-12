@@ -13,7 +13,7 @@ class ParlerTag < LiquidTagBase
       height="#{@height}"
       src="https://api.parler.io/ss/player?url=#{@id}">
     </iframe>
-    HTML
+HTML
     finalize_html(html)
   end
 
@@ -23,7 +23,6 @@ class ParlerTag < LiquidTagBase
     input_no_space = input.delete(" ")
     input_no_space = input_no_space.scan(/\bhttps?:\/\/[a-z.\/0-9-]+\b/).first
     raise StandardError, "Invalid Parler URL" unless valid_id?(input_no_space)
-
     input_no_space
   end
 

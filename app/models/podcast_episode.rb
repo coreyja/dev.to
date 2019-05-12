@@ -1,54 +1,51 @@
 class PodcastEpisode < ApplicationRecord
-  include AlgoliaSearch
-
+  include(AlgoliaSearch)
   acts_as_taggable
+  delegate(:slug, to: :podcast, prefix: true)
+  delegate(:image_url, to: :podcast, prefix: true)
+  delegate(:title, to: :podcast, prefix: true)
+  belongs_to(:podcast)
+  has_many(:comments, as: :commentable, inverse_of: :commentable)
+  mount_uploader(:image, ProfileImageUploader)
+  mount_uploader(:social_image, ProfileImageUploader)
+  validates(:title, presence: true)
+  validates(:slug, presence: true)
+  validates(:media_url, presence: true, uniqueness: true)
+  validates(:guid, presence: true, uniqueness: true)
+  after_update(:purge)
+  after_create(:purge_all)
+  after_destroy(:purge, :purge_all)
+  after_save(:bust_cache)
+  before_validation(:prefix_all_images)
 
-  delegate :slug, to: :podcast, prefix: true
-  delegate :image_url, to: :podcast, prefix: true
-  delegate :title, to: :podcast, prefix: true
+  algoliasearch(per_environment: true) do
+    attribute(:id)
 
-  belongs_to :podcast
-  has_many :comments, as: :commentable, inverse_of: :commentable
+    add_index("searchables", id: :index_id, per_environment: true) do
+      attribute(:title, :body, :quote, :summary, :subtitle, :website_url, :published_at, :comments_count, :path, :class_name, :user_name, :user_username, :published, :comments_blob, :body_text, :tag_list, :tag_keywords_for_search, :positive_reactions_count, :search_score)
 
-  mount_uploader :image, ProfileImageUploader
-  mount_uploader :social_image, ProfileImageUploader
-
-  validates :title, presence: true
-  validates :slug, presence: true
-  validates :media_url, presence: true, uniqueness: true
-  validates :guid, presence: true, uniqueness: true
-
-  after_update :purge
-  after_create :purge_all
-  after_destroy :purge, :purge_all
-  after_save    :bust_cache
-
-  before_validation :prefix_all_images
-
-  algoliasearch per_environment: true do
-    attribute :id
-    add_index "searchables",
-              id: :index_id,
-              per_environment: true do
-      attribute :title, :body, :quote, :summary, :subtitle, :website_url,
-                :published_at, :comments_count, :path, :class_name,
-                :user_name, :user_username, :published, :comments_blob,
-                :body_text, :tag_list, :tag_keywords_for_search,
-                :positive_reactions_count, :search_score
-      attribute :user do
-        { name: podcast.name,
+      attribute(:user) do
+        {
+          name: podcast.name,
           username: user_username,
-          profile_image_90: ProfileImage.new(user).get(90) }
+          profile_image_90: ProfileImage.new(user).get(90),
+        }
       end
-      searchableAttributes ["unordered(title)",
-                            "body_text",
-                            "tag_list",
-                            "tag_keywords_for_search",
-                            "user_name",
-                            "user_username",
-                            "comments_blob"]
-      attributesForFaceting [:class_name]
-      customRanking ["desc(search_score)", "desc(hotness_score)"]
+
+      searchableAttributes([
+        "unordered(title)",
+        "body_text",
+        "tag_list",
+        "tag_keywords_for_search",
+        "user_name",
+        "user_username",
+        "comments_blob",
+      ])
+      attributesForFaceting([:class_name])
+      customRanking([
+        "desc(search_score)",
+        "desc(hotness_score)",
+      ])
     end
   end
 
@@ -107,10 +104,10 @@ class PodcastEpisode < ApplicationRecord
   def zero_method
     0
   end
+
   alias hotness_score zero_method
   alias search_score zero_method
   alias positive_reactions_count zero_method
-
   def bust_cache
     purge
     purge_all
@@ -123,6 +120,7 @@ class PodcastEpisode < ApplicationRecord
     rescue StandardError => e
       Rails.logger.warn(e)
     end
+
     purge
     purge_all
   end
@@ -139,10 +137,10 @@ class PodcastEpisode < ApplicationRecord
   def nil_method
     nil
   end
+
   alias user_id nil_method
   alias second_user_id nil_method
   alias third_user_id nil_method
-
   def liquid_tags_used
     []
   end
@@ -151,30 +149,17 @@ class PodcastEpisode < ApplicationRecord
 
   def prefix_all_images
     return if body.blank?
-
-    self.processed_html = body.
-      gsub("\r\n<p>&nbsp;</p>\r\n", "").gsub("\r\n<p>&nbsp;</p>\r\n", "").
-      gsub("\r\n<h3>&nbsp;</h3>\r\n", "").gsub("\r\n<h3>&nbsp;</h3>\r\n", "")
-
+    self.processed_html = body.gsub("\r\n<p>&nbsp;</p>\r\n", "").gsub("\r\n<p>&nbsp;</p>\r\n", "").gsub("\r\n<h3>&nbsp;</h3>\r\n", "").gsub("\r\n<h3>&nbsp;</h3>\r\n", "")
     self.processed_html = "<p>#{processed_html}</p>" unless processed_html.include?("<p>")
-
     doc = Nokogiri::HTML(processed_html)
+
     doc.css("img").each do |img|
       img_src = img.attr("src")
 
       if img_src
         quality = "auto"
         quality = 66 if img_src.include?(".gif")
-
-        cloudinary_img_src = ActionController::Base.helpers.
-          cl_image_path(img_src,
-                        type: "fetch",
-                        width: 725,
-                        crop: "limit",
-                        quality: quality,
-                        flags: "progressive",
-                        fetch_format: "auto",
-                        sign_url: true)
+        cloudinary_img_src = ActionController::Base.helpers.cl_image_path(img_src, type: "fetch", width: 725, crop: "limit", quality: quality, flags: "progressive", fetch_format: "auto", sign_url: true)
         self.processed_html = processed_html.gsub(img_src, cloudinary_img_src)
       end
     end

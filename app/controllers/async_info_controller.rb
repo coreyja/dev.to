@@ -1,31 +1,36 @@
 class AsyncInfoController < ApplicationController
-  include Devise::Controllers::Rememberable
-  # No pundit policy. All actions are unrestricted.
+  include(Devise::Controllers::Rememberable)
 
+  # No pundit policy. All actions are unrestricted.
   def base_data
     flash.discard(:notice)
+
     unless user_signed_in?
-      render json: {
+      render(json: {
         param: request_forgery_protection_token,
-        token: form_authenticity_token
-      }
+        token: form_authenticity_token,
+      })
       return
     end
+
     if cookies[:remember_user_token].blank?
       current_user.remember_me = true
       current_user.remember_me!
       remember_me(current_user)
     end
+
     @user = current_user.decorate
+
     # Updates article analytics periodically:
     occasionally_update_analytics
+
     respond_to do |format|
       format.json do
-        render json: {
+        render(json: {
           param: request_forgery_protection_token,
           token: form_authenticity_token,
-          user: user_data.to_json
-        }
+          user: user_data.to_json,
+        })
       end
     end
   end
@@ -49,12 +54,21 @@ class AsyncInfoController < ApplicationController
         trusted: @user.trusted,
         experience_level: @user.experience_level,
         preferred_languages_array: @user.preferred_languages_array,
-        config_body_class: @user.config_body_class
+        config_body_class: @user.config_body_class,
       }
     end
   end
 
   def user_cache_key
+
+    #{current_user&.last_sign_in_at}__
+    #{current_user&.updated_at}__
+    #{current_user&.reactions_count}__
+    #{current_user&.comments_count}__
+    #{current_user&.saw_onboarding}__
+    #{current_user&.checked_code_of_conduct}__
+    #{current_user&.articles_count}__
+    #{cookies[:remember_user_token]}"
     "#{current_user&.id}__
     #{current_user&.last_sign_in_at}__
     #{current_user&.updated_at}__

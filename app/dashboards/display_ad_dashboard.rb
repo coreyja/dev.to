@@ -20,7 +20,7 @@ class DisplayAdDashboard < Administrate::BaseDashboard
     published: Field::Boolean,
     approved: Field::Boolean,
     created_at: Field::DateTime,
-    updated_at: Field::DateTime
+    updated_at: Field::DateTime,
   }.freeze
 
   # COLLECTION_ATTRIBUTES
@@ -28,48 +28,14 @@ class DisplayAdDashboard < Administrate::BaseDashboard
   #
   # By default, it's limited to four items to reduce clutter on index pages.
   # Feel free to add, remove, or rearrange items.
-  COLLECTION_ATTRIBUTES = %i[
-    organization
-    id
-    placement_area
-    body_markdown
-  ].freeze
+  COLLECTION_ATTRIBUTES = %i[organization id placement_area body_markdown].freeze
 
   # SHOW_PAGE_ATTRIBUTES
   # an array of attributes that will be displayed on the model's show page.
-  SHOW_PAGE_ATTRIBUTES = %i[
-    organization
-    id
-    placement_area
-    body_markdown
-    processed_html
-    cost_per_impression
-    cost_per_click
-    impressions_count
-    clicks_count
-    published
-    approved
-    created_at
-    updated_at
-  ].freeze
+  SHOW_PAGE_ATTRIBUTES = %i[organization id placement_area body_markdown processed_html cost_per_impression cost_per_click impressions_count clicks_count published approved created_at updated_at].freeze
 
   # FORM_ATTRIBUTES
   # an array of attributes that will be displayed
   # on the model's form (`new` and `edit`) pages.
-  FORM_ATTRIBUTES = %i[
-    organization
-    placement_area
-    body_markdown
-    cost_per_impression
-    cost_per_click
-    published
-    approved
-  ].freeze
-
-  # Overwrite this method to customize how display ads are displayed
-  # across all pages of the admin dashboard.
-  #
-  # def display_resource(display_ad)
-  #   "DisplayAd ##{display_ad.id}"
-  # end
+  FORM_ATTRIBUTES = %i[organization placement_area body_markdown cost_per_impression cost_per_click published approved].freeze
 end

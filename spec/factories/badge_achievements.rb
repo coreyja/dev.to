@@ -1,5 +1,5 @@
 FactoryBot.define do
-  factory :badge_achievement do
+  factory(:badge_achievement) do
     user
     badge
     rewarder { user }

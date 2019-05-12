@@ -1,17 +1,16 @@
 class TwitchStreamUpdatesController < ApplicationController
-  skip_before_action :verify_authenticity_token
-
+  skip_before_action(:verify_authenticity_token)
   def show
     if params["hub.mode"] == "denied"
-      airbrake_logger.error("Twitch Webhook was denied: #{params.permit('hub.mode', 'hub.reason', 'hub.topic').to_json}")
-      head :no_content
+      airbrake_logger.error("Twitch Webhook was denied: #{params.permit("hub.mode", "hub.reason", "hub.topic").to_json}")
+      head(:no_content)
     else
-      render plain: params["hub.challenge"]
+      render(plain: params["hub.challenge"])
     end
   end
 
   def create
-    head :no_content
+    head(:no_content)
 
     unless secret_verified?
       airbrake_logger.warn("Twitch Webhook Recieved for which the webhook could not be verified")
@@ -38,7 +37,6 @@ class TwitchStreamUpdatesController < ApplicationController
     digest = Digest::SHA256.new
     digest << ApplicationConfig["TWITCH_WEBHOOK_SECRET"]
     digest << request.raw_post
-
     twitch_sha == "sha256=#{digest.hexdigest}"
   end
 end

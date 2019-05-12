@@ -11,7 +11,10 @@ module Streams
 
         if token.nil? || Time.zone.now >= exp
           token, exp = get_new_token
-          Rails.cache.write(ACCESS_TOKEN_AND_EXPIRATION_CACHE_KEY, [token, exp])
+          Rails.cache.write(ACCESS_TOKEN_AND_EXPIRATION_CACHE_KEY, [
+            token,
+            exp,
+          ])
         end
 
         token
@@ -20,15 +23,15 @@ module Streams
       private
 
       def get_new_token
-        resp = HTTParty.post(
-          "https://id.twitch.tv/oauth2/token",
-          body: {
-            client_id: ApplicationConfig["TWITCH_CLIENT_ID"],
-            client_secret: ApplicationConfig["TWITCH_CLIENT_SECRET"],
-            grant_type: :client_credentials
-          },
-        )
-        [resp["access_token"], resp["expires_in"].seconds.from_now]
+        resp = HTTParty.post("https://id.twitch.tv/oauth2/token", body: {
+          client_id: ApplicationConfig["TWITCH_CLIENT_ID"],
+          client_secret: ApplicationConfig["TWITCH_CLIENT_SECRET"],
+          grant_type: :client_credentials,
+        })
+        [
+          resp["access_token"],
+          resp["expires_in"].seconds.from_now,
+        ]
       end
     end
   end

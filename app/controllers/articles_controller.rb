@@ -1,36 +1,30 @@
 class ArticlesController < ApplicationController
-  include ApplicationHelper
-  before_action :authenticate_user!, except: %i[feed new]
-  before_action :set_article, only: %i[edit manage update destroy]
-  before_action :raise_banned, only: %i[new create update]
-  before_action :set_cache_control_headers, only: %i[feed]
-  after_action :verify_authorized
-
+  include(ApplicationHelper)
+  before_action(:authenticate_user!, except: %i[feed new])
+  before_action(:set_article, only: %i[edit manage update destroy])
+  before_action(:raise_banned, only: %i[new create update])
+  before_action(:set_cache_control_headers, only: %i[feed])
+  after_action(:verify_authorized)
   def feed
     skip_authorization
-
-    @articles = Article.published.
-      select(:published_at, :processed_html, :user_id, :organization_id, :title, :path).
-      order(published_at: :desc).
-      page(params[:page].to_i).per(12)
+    @articles = Article.published.select(:published_at, :processed_html, :user_id, :organization_id, :title, :path).order(published_at: :desc).page(params[:page].to_i).per(12)
 
     @articles = if params[:username]
-                  handle_user_or_organization_feed
-                elsif params[:tag]
-                  handle_tag_feed
-                else
-                  @articles.where(featured: true).includes(:user)
-                end
+      handle_user_or_organization_feed
+    elsif params[:tag]
+      handle_tag_feed
+    else
+      @articles.where(featured: true).includes(:user)
+    end
 
     unless @articles
-      render body: nil
+      render(body: nil)
       return
     end
 
-    set_surrogate_key_header "feed"
+    set_surrogate_key_header("feed")
     response.headers["Surrogate-Control"] = "max-age=600, stale-while-revalidate=30, stale-if-error=86400"
-
-    render layout: false
+    render(layout: false)
   end
 
   def new
@@ -38,51 +32,43 @@ class ArticlesController < ApplicationController
     @organization = @user&.organization
     @tag = Tag.find_by(name: params[:template])
     @prefill = params[:prefill].to_s.gsub("\\n ", "\n").gsub("\\n", "\n")
+
     @article = if @tag.present? && @user&.editor_version == "v2"
-                 authorize Article
-                 submission_template = @tag.submission_template_customized(@user.name).to_s
-                 Article.new(body_markdown: submission_template.split("---").last.to_s.strip, cached_tag_list: @tag.name,
-                             processed_html: "", user_id: current_user&.id, title: submission_template.split("title:")[1].to_s.split("\n")[0].to_s.strip)
-               elsif @tag&.submission_template.present? && @user
-                 authorize Article
-                 Article.new(body_markdown: @tag.submission_template_customized(@user.name),
-                             processed_html: "", user_id: current_user&.id)
-               elsif @prefill.present? && @user&.editor_version == "v2"
-                 authorize Article
-                 Article.new(body_markdown: @prefill.split("---").last.to_s.strip, cached_tag_list: @prefill.split("tags:")[1].to_s.split("\n")[0].to_s.strip,
-                             processed_html: "", user_id: current_user&.id, title: @prefill.split("title:")[1].to_s.split("\n")[0].to_s.strip)
-               elsif @prefill.present? && @user
-                 authorize Article
-                 Article.new(body_markdown: @prefill,
-                             processed_html: "", user_id: current_user&.id)
-               elsif @tag.present?
-                 skip_authorization
-                 Article.new(
-                   body_markdown: "---\ntitle: \npublished: false\ndescription: \ntags: " + @tag.name + "\n---\n\n",
-                   processed_html: "", user_id: current_user&.id
-                 )
-               else
-                 skip_authorization
-                 if @user&.editor_version == "v2"
-                   Article.new(user_id: current_user&.id)
-                 else
-                   Article.new(
-                     body_markdown: "---\ntitle: \npublished: false\ndescription: \ntags: \n---\n\n",
-                     processed_html: "", user_id: current_user&.id
-                   )
-                 end
-               end
+      authorize(Article)
+      submission_template = @tag.submission_template_customized(@user.name).to_s
+      Article.new(body_markdown: submission_template.split("---").last.to_s.strip, cached_tag_list: @tag.name, processed_html: "", user_id: current_user&.id, title: submission_template.split("title:")[1].to_s.split("\n")[0].to_s.strip)
+    elsif @tag&.submission_template.present? && @user
+      authorize(Article)
+      Article.new(body_markdown: @tag.submission_template_customized(@user.name), processed_html: "", user_id: current_user&.id)
+    elsif @prefill.present? && @user&.editor_version == "v2"
+      authorize(Article)
+      Article.new(body_markdown: @prefill.split("---").last.to_s.strip, cached_tag_list: @prefill.split("tags:")[1].to_s.split("\n")[0].to_s.strip, processed_html: "", user_id: current_user&.id, title: @prefill.split("title:")[1].to_s.split("\n")[0].to_s.strip)
+    elsif @prefill.present? && @user
+      authorize(Article)
+      Article.new(body_markdown: @prefill, processed_html: "", user_id: current_user&.id)
+    elsif @tag.present?
+      skip_authorization
+      Article.new(body_markdown: "---\ntitle: \npublished: false\ndescription: \ntags: " + @tag.name + "\n---\n\n", processed_html: "", user_id: current_user&.id)
+    else
+      skip_authorization
+
+      if @user&.editor_version == "v2"
+        Article.new(user_id: current_user&.id)
+      else
+        Article.new(body_markdown: "---\ntitle: \npublished: false\ndescription: \ntags: \n---\n\n", processed_html: "", user_id: current_user&.id)
+      end
+    end
   end
 
   def edit
-    authorize @article
+    authorize(@article)
     @user = @article.user
     @organization = @user&.organization
   end
 
   def manage
     @article = @article.decorate
-    authorize @article
+    authorize(@article)
     @user = @article.user
     @rating_vote = RatingVote.where(article_id: @article.id, user_id: @user.id).first
     @buffer_updates = BufferUpdate.where(composer_user_id: @user.id, article_id: @article.id)
@@ -90,7 +76,7 @@ class ArticlesController < ApplicationController
   end
 
   def preview
-    authorize Article
+    authorize(Article)
     begin
       fixed_body_markdown = MarkdownFixer.fix_for_preview(params[:article_body])
       parsed = FrontMatterParser::Parser.new(:md).call(fixed_body_markdown)
@@ -100,37 +86,44 @@ class ArticlesController < ApplicationController
       @article = Article.new(body_markdown: params[:article_body])
       @article.errors[:base] << ErrorMessageCleaner.new(e.message).clean
     end
+
     respond_to do |format|
       if @article
-        format.json { render json: @article.errors, status: :unprocessable_entity }
+        format.json { render(json: @article.errors, status: :unprocessable_entity) }
       else
-        format.json { render json: { processed_html: processed_html, title: parsed["title"] }, status: 200 }
+        format.json {
+          render(json: {
+            processed_html: processed_html,
+            title: parsed["title"],
+          }, status: 200)
+        }
       end
     end
   end
 
   def create
-    authorize Article
+    authorize(Article)
     @user = current_user
-    @article = ArticleCreationService.
-      new(@user, article_params, job_opportunity_params).
-      create!
+    @article = ArticleCreationService.new(@user, article_params, job_opportunity_params).create!
     redirect_after_creation
   end
 
   def update
-    authorize @article
+    authorize(@article)
     @user = @article.user || current_user
     @article.tag_list = []
     @article.main_image = nil
+
     edited_at_date = if @article.user == current_user && @article.published
-                       Time.current
-                     else
-                       @article.edited_at
-                     end
+      Time.current
+    else
+      @article.edited_at
+    end
+
     if @article.update(article_params.merge(edited_at: edited_at_date))
       handle_org_assignment
       handle_hiring_tag
+
       if @article.published
         Notification.send_to_followers(@article, "Published") if @article.saved_changes["published_at"]&.include?(nil)
         path = @article.path
@@ -138,25 +131,27 @@ class ArticlesController < ApplicationController
         Notification.remove_all_without_delay(notifiable_id: @article.id, notifiable_type: "Article", action: "Published")
         path = "/#{@article.username}/#{@article.slug}?preview=#{@article.password}"
       end
+
       redirect_to(params[:destination] || path)
     else
-      render :edit
+      render(:edit)
     end
   end
 
   def delete_confirm
     @article = current_user.articles.find_by(slug: params[:slug])
-    authorize @article
+    authorize(@article)
   end
 
   def destroy
-    authorize @article
+    authorize(@article)
     @article.destroy!
     Notification.remove_all_without_delay(notifiable_id: @article.id, notifiable_type: "Article", action: "Published")
     Notification.remove_all(notifiable_id: @article.id, notifiable_type: "Article", action: "Reaction")
+
     respond_to do |format|
-      format.html { redirect_to "/dashboard", notice: "Article was successfully deleted." }
-      format.json { head :no_content }
+      format.html { redirect_to("/dashboard", notice: "Article was successfully deleted.") }
+      format.json { head(:no_content) }
     end
   end
 
@@ -190,9 +185,7 @@ class ArticlesController < ApplicationController
 
   def handle_tag_feed
     tag = Tag.find_by(name: params[:tag].downcase)
-
     return unless tag
-
     @tag = tag.alias_for.presence || tag
     @articles = @articles.cached_tagged_with(@tag)
   end
@@ -209,11 +202,13 @@ class ArticlesController < ApplicationController
 
   def set_article
     owner = User.find_by(username: params[:username]) || Organization.find_by(slug: params[:username])
+
     found_article = if params[:slug]
-                      owner.articles.includes(:user).find_by(slug: params[:slug])
-                    else
-                      Article.includes(:user).find(params[:id])
-                    end
+      owner.articles.includes(:user).find_by(slug: params[:slug])
+    else
+      Article.includes(:user).find(params[:id])
+    end
+
     @article = found_article || not_found
   end
 
@@ -223,35 +218,32 @@ class ArticlesController < ApplicationController
     modified_params << :user_id if org_admin_user_change_privilege
     modified_params << :comment_template if current_user.has_role?(:admin)
     params.require(:article).permit(modified_params)
+
   end
 
   def job_opportunity_params
     return nil if params[:article][:job_opportunity].blank?
+    params[:article].require(:job_opportunity).permit(:remoteness, :location_given, :location_city, :location_postal_code, :location_country_code, :location_lat, :location_long)
 
-    params[:article].require(:job_opportunity).permit(
-      :remoteness, :location_given, :location_city, :location_postal_code,
-      :location_country_code, :location_lat, :location_long
-    )
   end
 
   def redirect_after_creation
     @article.decorate
+
     if @article.persisted?
-      redirect_to @article.current_state_path, notice: "Article was successfully created."
+      redirect_to(@article.current_state_path, notice: "Article was successfully created.")
     else
       if @article.errors.to_h[:body_markdown] == "has already been taken"
         @article = current_user.articles.find_by(body_markdown: @article.body_markdown)
-        redirect_to @article.current_state_path
+        redirect_to(@article.current_state_path)
         return
       end
-      render :new
+
+      render(:new)
     end
   end
 
   def org_admin_user_change_privilege
-    params[:article][:user_id] &&
-      current_user.org_admin &&
-      current_user.organization_id == @article.organization_id &&
-      User.find(params[:article][:user_id])&.organization_id == @article.organization_id
+    params[:article][:user_id] && current_user.org_admin && current_user.organization_id == @article.organization_id && User.find(params[:article][:user_id])&.organization_id == @article.organization_id
   end
 end

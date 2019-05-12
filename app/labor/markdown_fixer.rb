@@ -1,12 +1,8 @@
 class MarkdownFixer
   FRONT_MATTER_DETECTOR = /-{3}.*?-{3}/m.freeze
-
   class << self
     def fix_all(markdown)
-      methods = %i[
-        add_quotes_to_title add_quotes_to_description
-        modify_hr_tags convert_new_lines split_tags
-      ]
+      methods = %i[add_quotes_to_title add_quotes_to_description modify_hr_tags convert_new_lines split_tags]
       methods.reduce(markdown) { |result, method| send(method, result) }
     end
 
@@ -44,20 +40,26 @@ class MarkdownFixer
     private
 
     def add_quotes_to_section(markdown, section:)
+
       # Only add quotes to front matter, or text between triple dashes
       markdown.gsub(FRONT_MATTER_DETECTOR) do |front_matter|
         front_matter.gsub(/#{section}:\s?(.*?)(\r\n|\n)/m) do |target|
+
           # 1 is the captured group (.*?)
           captured_text = Regexp.last_match(1)
+
           # The query below checks if the whole text is wrapped in
           # either single or double quotes.
           match = captured_text.scan(/(^".*"$|^'.*'$)/)
+
           if match.empty?
+
             # Double quotes that aren't already escaped will get esacped.
             # Then the whole text get warped in double quotes.
             parsed_text = captured_text.gsub(/(?<![\\])["]/, "\\\"")
             "#{section}: \"#{parsed_text}\"\n"
           else
+
             # if the text comes pre-warped in either single or double quotes,
             # no more processing is done
             target

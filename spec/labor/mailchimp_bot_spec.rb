@@ -18,19 +18,19 @@ class FakeGibbonRequest < Gibbon::Request
   end
 end
 
-RSpec.describe MailchimpBot do
+RSpec.describe(MailchimpBot) do
   let(:user) { create(:user, :ignore_after_callback) }
   let(:article) { create(:article, user_id: user.id) }
   let(:my_gibbon_client) { instance_double(FakeGibbonRequest) }
   let(:tag) { create(:tag, name: "tag name", bg_color_hex: Faker::Color.hex_color, text_color_hex: Faker::Color.hex_color, supported: true) }
 
   before do
-    allow(Gibbon::Request).to receive(:new) { my_gibbon_client }
-    allow(my_gibbon_client).to receive(:lists) { my_gibbon_client }
-    allow(my_gibbon_client).to receive(:tag_mods) { my_gibbon_client }
-    allow(my_gibbon_client).to receive(:community_mods) { my_gibbon_client }
-    allow(my_gibbon_client).to receive(:members) { my_gibbon_client }
-    allow(my_gibbon_client).to receive(:upsert).and_return(true)
+    allow(Gibbon::Request).to(receive(:new) { my_gibbon_client })
+    allow(my_gibbon_client).to(receive(:lists) { my_gibbon_client })
+    allow(my_gibbon_client).to(receive(:tag_mods) { my_gibbon_client })
+    allow(my_gibbon_client).to(receive(:community_mods) { my_gibbon_client })
+    allow(my_gibbon_client).to(receive(:members) { my_gibbon_client })
+    allow(my_gibbon_client).to(receive(:upsert).and_return(true))
   end
 
   def matcher
@@ -50,122 +50,101 @@ RSpec.describe MailchimpBot do
           EXPERIENCE: user.experience_level || 666,
           COUNTRY: user.shipping_country.to_s,
           STATE: user.shipping_state.to_s,
-          POSTAL_ZIP: user.shipping_postal_code.to_s
-        }
-      }
+          POSTAL_ZIP: user.shipping_postal_code.to_s,
+        },
+      },
     }
   end
 
-  describe "#upsert" do
-    it "works" do
+  describe("#upsert") do
+    it("works") do
       described_class.new(user).upsert
-      expect(my_gibbon_client).to have_received(:upsert)
+      expect(my_gibbon_client).to(have_received(:upsert))
     end
   end
 
-  describe "#upsert_to_newsletter" do
-    it "sends proper information" do
+  describe("#upsert_to_newsletter") do
+    it("sends proper information") do
       described_class.new(user).upsert_to_newsletter
-      expect(my_gibbon_client).to have_received(:upsert).with(matcher)
+      expect(my_gibbon_client).to(have_received(:upsert).with(matcher))
     end
 
-    it "unsubscribes properly" do
+    it("unsubscribes properly") do
       user.update(email_newsletter: false)
       described_class.new(user).upsert_to_newsletter
-      expect(my_gibbon_client).to have_received(:upsert).
-        with(hash_including(body: hash_including(status: "unsubscribed")))
+      expect(my_gibbon_client).to(have_received(:upsert).with(hash_including(body: hash_including(status: "unsubscribed"))))
     end
 
-    it "subscribes properly" do
+    it("subscribes properly") do
       user.update(email_newsletter: false)
       user.update(email_newsletter: true)
       described_class.new(user).upsert_to_newsletter
-      expect(my_gibbon_client).to have_received(:upsert).
-        with(hash_including(body: hash_including(status: "subscribed")))
+      expect(my_gibbon_client).to(have_received(:upsert).with(hash_including(body: hash_including(status: "subscribed"))))
     end
 
-    it "updates email properly" do
+    it("updates email properly") do
       user.update(email: Faker::Internet.email)
       user.confirm
       described_class.new(user).upsert_to_newsletter
-      expect(my_gibbon_client).to have_received(:upsert).
-        with(hash_including(body: hash_including(email_address: user.email)))
+      expect(my_gibbon_client).to(have_received(:upsert).with(hash_including(body: hash_including(email_address: user.email))))
     end
   end
 
-  describe "manage community moderator list" do
-    it "returns false if user isn't a community moderator" do
-      expect(described_class.new(user).manage_community_moderator_list).to be(false)
+  describe("manage community moderator list") do
+    it("returns false if user isn't a community moderator") do
+      expect(described_class.new(user).manage_community_moderator_list).to(be(false))
     end
 
-    it "sends proper information" do
+    it("sends proper information") do
       user.update(email_community_mod_newsletter: true)
-      user.add_role :trusted
+      user.add_role(:trusted)
       described_class.new(user).manage_community_moderator_list
-      expect(my_gibbon_client).to have_received(:upsert).
-        with(hash_including(
-               body: hash_including(
-                 status: "subscribed",
-               ),
-             ))
+      expect(my_gibbon_client).to(have_received(:upsert).with(hash_including(body: hash_including(status: "subscribed"))))
     end
   end
 
-  describe "manage tag moderator list" do
-    it "returns false if user isn't a tag moderator" do
-      expect(described_class.new(user).manage_community_moderator_list).to be(false)
+  describe("manage tag moderator list") do
+    it("returns false if user isn't a tag moderator") do
+      expect(described_class.new(user).manage_community_moderator_list).to(be(false))
     end
 
-    it "sends proper information" do
+    it("sends proper information") do
       user.update(email_tag_mod_newsletter: true)
       user.add_role(:tag_moderator, tag)
       described_class.new(user).manage_tag_moderator_list
-      expect(my_gibbon_client).to have_received(:upsert).
-        with(hash_including(
-               body: hash_including(
-                 status: "subscribed",
-               ),
-             ))
+      expect(my_gibbon_client).to(have_received(:upsert).with(hash_including(body: hash_including(status: "subscribed"))))
     end
   end
 
-  describe "#upsert_to_membership_newsletter" do
-    it "returns false if user isn't a sustaining member" do
-      expect(described_class.new(user).upsert_to_membership_newsletter).to be(false)
+  describe("#upsert_to_membership_newsletter") do
+    it("returns false if user isn't a sustaining member") do
+      expect(described_class.new(user).upsert_to_membership_newsletter).to(be(false))
     end
 
-    context "when user is a sustaining member" do
-      it "send proper information" do
+    context("when user is a sustaining member") do
+      it("send proper information") do
         user.update(monthly_dues: 2500, email_membership_newsletter: true)
         user.add_role(:level_2_member)
         described_class.new(user).upsert_to_membership_newsletter
-        expect(my_gibbon_client).to have_received(:upsert).
-          with(hash_including(
-                 body: hash_including(
-                   status: "subscribed",
-                   merge_fields: hash_including(MEMBERSHIP: "level_2_member"),
-                 ),
-               ))
+        expect(my_gibbon_client).to(have_received(:upsert).with(hash_including(body: hash_including(status: "subscribed", merge_fields: hash_including(MEMBERSHIP: "level_2_member")))))
       end
 
-      it "unsubscribes if monthly due become 0" do
+      it("unsubscribes if monthly due become 0") do
         user.update(monthly_dues: 2500)
         user.update(monthly_dues: 0)
         described_class.new(user).upsert_to_membership_newsletter
-        expect(my_gibbon_client).to have_received(:upsert).
-          with(hash_including(body: hash_including(status: "unsubscribed")))
+        expect(my_gibbon_client).to(have_received(:upsert).with(hash_including(body: hash_including(status: "unsubscribed"))))
       end
     end
   end
 
-  describe "#unsubscribe_all_newsletters" do
-    context "when called" do
-      before { allow(my_gibbon_client).to receive(:update).and_return(true) }
+  describe("#unsubscribe_all_newsletters") do
+    context("when called") do
+      before { allow(my_gibbon_client).to(receive(:update).and_return(true)) }
 
-      it "unsubscribes the user from the weekly newsletter" do
+      it("unsubscribes the user from the weekly newsletter") do
         described_class.new(user).unsubscribe_all_newsletters
-        expect(my_gibbon_client).to have_received(:update).
-          with(hash_including(body: hash_including(status: "unsubscribed")))
+        expect(my_gibbon_client).to(have_received(:update).with(hash_including(body: hash_including(status: "unsubscribed"))))
       end
     end
   end

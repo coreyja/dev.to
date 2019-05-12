@@ -2,13 +2,11 @@ require "zip"
 
 module Exporter
   class Service
-    attr_reader :user
-
+    attr_reader(:user)
     EXPORTERS = [
       Exporter::Articles,
       Exporter::Comments,
     ].freeze
-
     def initialize(user)
       @user = user
     end
@@ -19,17 +17,15 @@ module Exporter
       # export content with filenames
       EXPORTERS.each do |exporter|
         files = exporter.new(user).export(config.fetch(exporter.name.demodulize.downcase.to_sym, {}))
+
         files.each do |name, content|
           exports[name] = content
         end
       end
 
       zipped_exports = zip_exports(exports)
-
       send_exports_by_email(zipped_exports) if send_email
-
       update_user_export_fields
-
       zipped_exports.rewind
       zipped_exports
     end
@@ -38,18 +34,14 @@ module Exporter
 
     def zip_exports(exports)
       buffer = StringIO.new
+
       Zip::OutputStream.write_buffer(buffer) do |stream|
         exports.each do |name, content|
-          stream.put_next_entry(
-            name,
-            nil, # comment
-            nil, # extra
-            Zip::Entry::DEFLATED,
-            Zlib::BEST_COMPRESSION,
-          )
-          stream.write content
+          stream.put_next_entry(name, nil, nil, Zip::Entry::DEFLATED, Zlib::BEST_COMPRESSION)
+          stream.write(content)
         end
       end
+
       buffer
     end
 

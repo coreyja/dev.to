@@ -14,7 +14,7 @@ class YoutubeTag < LiquidTagBase
       src="https://www.youtube.com/embed/#{@id}"
       allowfullscreen>
     </iframe>
-    HTML
+HTML
     finalize_html(html)
   end
 
@@ -24,7 +24,6 @@ class YoutubeTag < LiquidTagBase
     input_no_space = input.delete(" ")
     raise StandardError, "Invalid YouTube ID" unless valid_id?(input_no_space)
     return translate_start_time(input_no_space) if input_no_space.include?("?t=")
-
     input_no_space
   end
 
@@ -33,10 +32,10 @@ class YoutubeTag < LiquidTagBase
     time_hash = {
       h: time.scan(/\d+h/)[0]&.delete("h").to_i,
       m: time.scan(/\d+m/)[0]&.delete("m").to_i,
-      s: time.scan(/\d+s/)[0]&.delete("s").to_i
+      s: time.scan(/\d+s/)[0]&.delete("s").to_i,
     }
     time_in_seconds = (time_hash[:h] * 3600) + (time_hash[:m] * 60) + time_hash[:s]
-    "#{id.split('?t=')[0]}?start=#{time_in_seconds}"
+    "#{id.split("?t=")[0]}?start=#{time_in_seconds}"
   end
 
   def valid_id?(id)

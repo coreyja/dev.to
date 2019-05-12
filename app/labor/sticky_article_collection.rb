@@ -1,5 +1,5 @@
 class StickyArticleCollection
-  attr_accessor :article, :author, :reaction_count_num, :comment_count_num
+  attr_accessor(:article, :author, :reaction_count_num, :comment_count_num)
   def initialize(article, author)
     @article = article
     @author = author
@@ -8,11 +8,7 @@ class StickyArticleCollection
   end
 
   def user_stickies
-    author.articles.published.
-      limited_column_select.
-      tagged_with(article_tags, any: true).
-      where.not(id: article.id).order("published_at DESC").
-      limit(2)
+    author.articles.published.limited_column_select.tagged_with(article_tags, any: true).where.not(id: article.id).order("published_at DESC").limit(2)
   end
 
   def suggested_stickies
@@ -20,25 +16,12 @@ class StickyArticleCollection
   end
 
   def tag_articles
-    @tag_articles ||= Article.published.tagged_with(article_tags, any: true).
-      includes(:user).
-      where("positive_reactions_count > ? OR comments_count > ?", reaction_count_num, comment_count_num).
-      where.not(id: article.id, user_id: article.user_id).
-      where("featured_number > ?", 5.days.ago.to_i).
-      order(Arel.sql("RANDOM()")).
-      limit(8)
+    @tag_articles ||= Article.published.tagged_with(article_tags, any: true).includes(:user).where("positive_reactions_count > ? OR comments_count > ?", reaction_count_num, comment_count_num).where.not(id: article.id, user_id: article.user_id).where("featured_number > ?", 5.days.ago.to_i).order(Arel.sql("RANDOM()")).limit(8)
   end
 
   def more_articles
     return [] if tag_articles.size > 6
-
-    Article.published.tagged_with(%w[career productivity discuss explainlikeimfive], any: true).
-      includes(:user).
-      where("comments_count > ?", comment_count_num).
-      where.not(id: article.id, user_id: article.user_id).
-      where("featured_number > ?", 5.days.ago.to_i).
-      order(Arel.sql("RANDOM()")).
-      limit(10 - tag_articles.size)
+    Article.published.tagged_with(%w[career productivity discuss explainlikeimfive], any: true).includes(:user).where("comments_count > ?", comment_count_num).where.not(id: article.id, user_id: article.user_id).where("featured_number > ?", 5.days.ago.to_i).order(Arel.sql("RANDOM()")).limit(10 - tag_articles.size)
   end
 
   def article_tags

@@ -1,7 +1,5 @@
 class EmailLogic
-  attr_reader :open_percentage, :last_email_sent_at,
-              :days_until_next_email, :articles_to_send
-
+  attr_reader(:open_percentage, :last_email_sent_at, :days_until_next_email, :articles_to_send)
   def initialize(user)
     @user = user
     @open_percentage = nil
@@ -28,29 +26,19 @@ class EmailLogic
 
   def get_articles_to_send
     fresh_date = get_fresh_date
+
     articles = if user_has_followings?
-                 @user.followed_articles.
-                   where("published_at > ?", fresh_date).
-                   where(published: true, email_digest_eligible: true).
-                   where.not(user_id: @user.id).
-                   where("score > ?", 12).
-                   where("experience_level_rating > ? AND experience_level_rating < ?", (@user.experience_level || 5) - 3.6, (@user.experience_level || 5) + 3.6).
-                   order("score DESC").
-                   limit(8)
-               else
-                 Article.published.
-                   where("published_at > ?", fresh_date).
-                   where(featured: true, email_digest_eligible: true).
-                   where.not(user_id: @user.id).
-                   where("score > ?", 25).
-                   order("score DESC").
-                   limit(8)
-               end
+      @user.followed_articles.where("published_at > ?", fresh_date).where(published: true, email_digest_eligible: true).where.not(user_id: @user.id).where("score > ?", 12).where("experience_level_rating > ? AND experience_level_rating < ?", (@user.experience_level || 5) - 3.6, (@user.experience_level || 5) + 3.6).order("score DESC").limit(8)
+    else
+      Article.published.where("published_at > ?", fresh_date).where(featured: true, email_digest_eligible: true).where.not(user_id: @user.id).where("score > ?", 25).order("score DESC").limit(8)
+    end
+
     @ready_to_receive_email = false if articles.length < 3
     articles
   end
 
   def get_days_until_next_email
+
     # Relies on hyperbolic tangent function to model the frequency of the digest email
     max_day = ApplicationConfig["PERIODIC_EMAIL_DIGEST_MAX"].to_i
     min_day = ApplicationConfig["PERIODIC_EMAIL_DIGEST_MIN"].to_i
@@ -64,7 +52,6 @@ class EmailLogic
 
     # Will stick with 50% open rate if @user has no/not-enough email digest history
     return 0.5 if past_sent_emails.length < 10
-
     past_sent_emails_count = past_sent_emails.count
     past_opened_emails_count = past_sent_emails.where("opened_at IS NOT NULL").count
     past_opened_emails_count / past_sent_emails_count
@@ -84,7 +71,6 @@ class EmailLogic
   def get_fresh_date
     a_few_days_ago = 4.days.ago.utc
     return a_few_days_ago unless @last_email_sent_at
-
     a_few_days_ago > @last_email_sent_at ? a_few_days_ago : @last_email_sent_at
   end
 

@@ -1,7 +1,6 @@
 module Moderator
   class MergeUser < ManageActivityAndRoles
-    attr_reader :keep_user, :admin, :delete_user_id
-
+    attr_reader(:keep_user, :admin, :delete_user_id)
     def initialize(admin:, keep_user:, delete_user_id:)
       @keep_user = keep_user
       @admin = admin
@@ -14,7 +13,6 @@ module Moderator
 
     def merge
       raise "You cannot merge the same two user id#s" if @delete_user.id == @keep_user.id
-
       handle_identities
       merge_content
       merge_follows
@@ -24,34 +22,31 @@ module Moderator
       update_social
       @delete_user.delete
       @keep_user.touch(:profile_updated_at)
-
-      CacheBuster.new.bust "/#{@keep_user.username}"
+      CacheBuster.new.bust("/#{@keep_user.username}")
     end
 
     private
 
     def handle_identities
       raise "The user being deleted already has two identities. Are you sure this is the right user to be deleted? If so, a super admin will need to do this from the console to be safe." if @delete_user.identities.count > 1
-
       return true if @keep_user.identities.count > 1 || @delete_user.identities.none? || @keep_user.identities.last.provider == @delete_user.identities.last.provider
-
       @delete_user.identities.first.update_columns(user_id: @keep_user.id)
     end
 
     def update_social
       @old_tu = @delete_user.twitter_username
       @old_gu = @delete_user.github_username
+
       ActiveRecord::Base.transaction do
         @delete_user.update_columns(twitter_username: nil, github_username: nil)
         @keep_user.update_columns(twitter_username: @old_tu) if @keep_user.twitter_username.nil?
         @keep_user.update_columns(github_username: @old_gu) if @keep_user.github_username.nil?
-        @keep_user.touch(:profile_updated_at, :last_followed_at) # clears cache on sidebar
+        @keep_user.touch(:profile_updated_at, :last_followed_at)
       end
     end
 
     def remove_additional_email
       return if @delete_user.email.blank?
-
       email_attr = {
         email_comment_notifications: false,
         email_digest_periodic: false,
@@ -60,9 +55,8 @@ module Moderator
         email_newsletter: false,
         email_unread_notifications: false,
         email_badge_notifications: false,
-        email_membership_newsletter: false
+        email_membership_newsletter: false,
       }
-
       @delete_user.update(email_attr)
       @delete_user.unsubscribe_from_newsletters
     end
@@ -72,6 +66,7 @@ module Moderator
         @delete_user.github_repos.update_all(user_id: @keep_user.id)
         @keep_user.touch(:github_repos_updated_at)
       end
+
       if @delete_user.badge_achievements.any?
         @delete_user.badge_achievements.update_all(user_id: @keep_user.id)
         @keep_user.badge_achievements_count = @keep_user.badge_achievements.size

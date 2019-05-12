@@ -15,7 +15,7 @@ class BlogcastTag < LiquidTagBase
           style="width:100%;min-height:132px;overflow:hidden;margin:0;"
           webkitallowfullscreen="true"></iframe>
       </div>
-    HTML
+HTML
     finalize_html(html)
   end
 
@@ -24,7 +24,6 @@ class BlogcastTag < LiquidTagBase
   def parse_id(input)
     input_no_space = input.delete(" ")
     raise StandardError, "Invalid Blogcast Id" unless valid_id?(input_no_space)
-
     input_no_space
   end
 

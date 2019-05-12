@@ -12,28 +12,30 @@ module Notifications
         @receiver = receiver
       end
 
-      delegate :user_data, to: Notifications
-
+      delegate(:user_data, to: Notifications)
       def self.call(*args)
         new(*args).call
       end
 
       def call
         return unless receiver.is_a?(User) || receiver.is_a?(Organization)
-
-        reaction_siblings = Reaction.where(reactable_id: reaction.reactable_id, reactable_type: reaction.reactable_type).
-          where.not(reactions: { user_id: reaction.reactable_user_id }).
-          includes(:reactable).
-          order("created_at DESC")
-
-        aggregated_reaction_siblings = reaction_siblings.map { |r| { category: r.category, created_at: r.created_at, user: user_data(r.user) } }
-
+        reaction_siblings = Reaction.where(reactable_id: reaction.reactable_id, reactable_type: reaction.reactable_type).where.not(reactions: {
+          user_id: reaction.reactable_user_id,
+        }).includes(:reactable).order("created_at DESC")
+        aggregated_reaction_siblings = reaction_siblings.map { |r|
+          {
+            category: r.category,
+            created_at: r.created_at,
+            user: user_data(r.user),
+          }
+        }
         notification_params = {
           notifiable_type: reaction.reactable_type,
           notifiable_id: reaction.reactable_id,
-          action: "Reaction"
-          # user_id or organization_id: receiver.id
+          action: "Reaction",
         }
+
+          # user_id or organization_id: receiver.id
         if receiver.is_a?(User)
           notification_params[:user_id] = receiver.id
         elsif receiver.is_a?(Organization)
@@ -44,9 +46,7 @@ module Notifications
           notification = Notification.where(notification_params).delete_all
         else
           recent_reaction = reaction_siblings.first
-
           json_data = reaction_json_data(recent_reaction, aggregated_reaction_siblings)
-
           previous_siblings_size = 0
           notification = Notification.find_or_initialize_by(notification_params)
           previous_siblings_size = notification.json_data["reaction"]["aggregated_siblings"].size if notification.json_data
@@ -55,13 +55,13 @@ module Notifications
           notification.read = false if json_data[:reaction][:aggregated_siblings].size > previous_siblings_size
           notification.save!
         end
+
         notification
       end
 
       private
 
-      attr_reader :reaction, :receiver
-
+      attr_reader(:reaction, :receiver)
       def reaction_json_data(recent_reaction, siblings)
         {
           user: user_data(recent_reaction.user),
@@ -73,12 +73,12 @@ module Notifications
               path: recent_reaction.reactable.path,
               title: recent_reaction.reactable.title,
               class: {
-                name: recent_reaction.reactable.class.name
-              }
+                name: recent_reaction.reactable.class.name,
+              },
             },
             aggregated_siblings: siblings,
-            updated_at: recent_reaction.updated_at
-          }
+            updated_at: recent_reaction.updated_at,
+          },
         }
       end
     end

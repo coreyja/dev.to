@@ -1,7 +1,7 @@
 require "uri"
 
 class GlitchTag < LiquidTagBase
-  attr_accessor :uri
+  attr_accessor(:uri)
   def initialize(tag_name, id, tokens)
     super
     @uri = build_uri(id)
@@ -17,7 +17,7 @@ class GlitchTag < LiquidTagBase
           alt="#{@id} on glitch"
           style="height: 100%; width: 100%; border: 0;margin:0;padding:0"></iframe>
       </div>
-    HTML
+HTML
     finalize_html(html)
   end
 
@@ -30,7 +30,6 @@ class GlitchTag < LiquidTagBase
   def parse_id(input)
     id = input.split(" ").first
     raise StandardError, "Invalid Glitch ID" unless valid_id?(id)
-
     id
   end
 
@@ -54,13 +53,17 @@ class GlitchTag < LiquidTagBase
   end
 
   def build_options(options)
+
     # Convert options to query param pairs
     params = options.map { |x| option_to_query_pair(x) }.compact
 
     # Deal with the file option if present or use default
     file_option = options.detect { |x| x.start_with?("file=") }
-    path = file_option ? (file_option.sub! "file=", "") : "index.html"
-    params.push ["path", path]
+    path = file_option ? (file_option.sub!("file=", "")) : "index.html"
+    params.push([
+      "path",
+      path,
+    ])
 
     # Encode the resulting pairs as a query string
     URI.encode_www_form(params)
@@ -75,7 +78,6 @@ class GlitchTag < LiquidTagBase
     # Validation
     validated_options = options.map { |o| valid_option(o) }.reject(&:nil?)
     raise StandardError, "Invalid Options" unless options.empty? || !validated_options.empty?
-
     build_options(options)
   end
 

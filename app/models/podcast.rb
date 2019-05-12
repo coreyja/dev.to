@@ -1,12 +1,9 @@
 class Podcast < ApplicationRecord
-  has_many :podcast_episodes
-
-  mount_uploader :image, ProfileImageUploader
-  mount_uploader :pattern_image, ProfileImageUploader
-
-  after_save :bust_cache
-  after_create :pull_all_episodes
-
+  has_many(:podcast_episodes)
+  mount_uploader(:image, ProfileImageUploader)
+  mount_uploader(:pattern_image, ProfileImageUploader)
+  after_save(:bust_cache)
+  after_create(:pull_all_episodes)
   def path
     slug
   end
@@ -28,5 +25,6 @@ class Podcast < ApplicationRecord
   def pull_all_episodes
     PodcastFeed.new.get_episodes(self)
   end
-  handle_asynchronously :pull_all_episodes
+
+  handle_asynchronously(:pull_all_episodes)
 end

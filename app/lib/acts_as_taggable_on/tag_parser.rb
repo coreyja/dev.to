@@ -2,7 +2,7 @@ module ActsAsTaggableOn
   class TagParser < GenericParser
     def parse
       ActsAsTaggableOn::TagList.new.tap do |tag_list|
-        tag_list.add replace_with_tag_alias(clean(@tag_list))
+        tag_list.add(replace_with_tag_alias(clean(@tag_list)))
       end
     end
 
@@ -25,11 +25,13 @@ module ActsAsTaggableOn
           possible_alias = find_tag_alias(possible_alias)
           found_alias = possible_alias if possible_alias
         end
+
         found_alias
       end
     end
 
     def find_tag_alias(tag)
+
       # "&." is "Safe Navigation"; ensure not called on nil
       alias_for = Tag.find_by(name: tag)&.alias_for
       alias_for.presence

@@ -8,8 +8,9 @@ class EmailSubscriptionsController < ApplicationController
       user.update(verified_params[:email_type] => false)
       @email_type = preferred_email_name(verified_params[:email_type])
     else
-      render "invalid_token"
+      render("invalid_token")
     end
+
   rescue ActiveSupport::MessageVerifier::InvalidSignature
     not_found
   end
@@ -21,7 +22,7 @@ class EmailSubscriptionsController < ApplicationController
       email_follower_notifications: "follower notifications",
       email_mention_notifications: "mention notifications",
       email_connect_messages: "connect messages",
-      email_unread_notifications: "unread notifications"
+      email_unread_notifications: "unread notifications",
     }
     emails_type[given_email_type]
   end

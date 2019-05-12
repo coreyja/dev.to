@@ -1,35 +1,37 @@
 class Mention < ApplicationRecord
-  belongs_to :user
-  belongs_to :mentionable, polymorphic: true
-
-  validates :user_id, presence: true,
-                      uniqueness: { scope: %i[mentionable_id
-                                              mentionable_type] }
-  validates :mentionable_id, presence: true
-  validates :mentionable_type, presence: true
-  validate :permission
-  after_create :send_email_notification
-
+  belongs_to(:user)
+  belongs_to(:mentionable, polymorphic: true)
+  validates(:user_id, presence: true, uniqueness: {
+    scope: %i[mentionable_id mentionable_type],
+  })
+  validates(:mentionable_id, presence: true)
+  validates(:mentionable_type, presence: true)
+  validate(:permission)
+  after_create(:send_email_notification)
   class << self
     def create_all(notifiable)
+
       # Only works for comments right now.
       # Paired with the process that creates the "comment-mentioned-user"
       @notifiable = notifiable
       doc = Nokogiri::HTML(notifiable.processed_html)
       usernames = []
       mentions = []
+
       doc.css(".comment-mentioned-user").each do |link|
         username = link.text.delete("@").downcase
+
         if (user = User.find_by(username: username))
           usernames << username
           mentions << create_mention(user)
         end
       end
+
       delete_removed_mentions(usernames)
       mentions
     end
-    handle_asynchronously :create_all
 
+    handle_asynchronously(:create_all)
     private
 
     def delete_removed_mentions(usernames)
@@ -40,6 +42,7 @@ class Mention < ApplicationRecord
 
     def create_mention(user)
       mention = Mention.create(user_id: user.id, mentionable_id: @notifiable.id, mentionable_type: @notifiable.class.name)
+
       # mentionable_type = model that created the mention, user = user to be mentioned
       Notification.send_mention_notification(mention)
       mention
@@ -49,8 +52,8 @@ class Mention < ApplicationRecord
   def send_email_notification
     NotifyMailer.new_mention_email(self).deliver if User.find(user_id).email.present? && User.find(user_id).email_mention_notifications
   end
-  handle_asynchronously :send_email_notification
 
+  handle_asynchronously(:send_email_notification)
   def permission
     errors.add(:mentionable_id, "is not valid.") unless mentionable.valid?
   end

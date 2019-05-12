@@ -11,31 +11,25 @@ module Notifications
         new(*args).call
       end
 
-      delegate :user_data, :comment_data, to: Notifications
-
+      delegate(:user_data, :comment_data, to: Notifications)
       def call
+
         # notifiable is currently only comment
         return unless notifiable_supported?(notifiable)
-
-        json_data = { user: user_data(User.dev_account) }
-        json_data[notifiable.class.name.downcase] = public_send "#{notifiable.class.name.downcase}_data", notifiable
-        new_notification = Notification.create(
-          user_id: moderator.id,
-          notifiable_id: notifiable.id,
-          notifiable_type: notifiable.class.name,
-          action: "Moderation",
-          json_data: json_data,
-        )
+        json_data = {
+          user: user_data(User.dev_account),
+        }
+        json_data[notifiable.class.name.downcase] = public_send("#{notifiable.class.name.downcase}_data", notifiable)
+        new_notification = Notification.create(user_id: moderator.id, notifiable_id: notifiable.id, notifiable_type: notifiable.class.name, action: "Moderation", json_data: json_data)
         moderator.update_column(:last_moderation_notification, Time.current)
         new_notification
       end
 
       private
 
-      attr_reader :notifiable, :moderator
-
+      attr_reader(:notifiable, :moderator)
       def notifiable_supported?(notifiable)
-        SUPPORTED.include? notifiable.class
+        SUPPORTED.include?(notifiable.class)
       end
     end
   end

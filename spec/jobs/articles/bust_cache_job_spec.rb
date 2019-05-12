@@ -1,19 +1,20 @@
 require "rails_helper"
 
-RSpec.describe Articles::BustCacheJob, type: :job do
-  include_examples "#enqueues_job", "articles_bust_cache", [1, 2]
+RSpec.describe(Articles::BustCacheJob, type: :job) do
+  include_examples("#enqueues_job", "articles_bust_cache", [
+    1,
+    2,
+  ])
 
-  describe "#perform_now" do
-    it "busts cache" do
+  describe("#perform_now") do
+    it("busts cache") do
       article = create(:article)
       path = article.path
-
       cache_buster = double
-      allow(cache_buster).to receive(:bust)
-
+      allow(cache_buster).to(receive(:bust))
       described_class.perform_now([article.id], cache_buster)
-      expect(cache_buster).to have_received(:bust).with(path).once
-      expect(cache_buster).to have_received(:bust).with(path + "?i=i").once
+      expect(cache_buster).to(have_received(:bust).with(path).once)
+      expect(cache_buster).to(have_received(:bust).with(path + "?i=i").once)
     end
   end
 end

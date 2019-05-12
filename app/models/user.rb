@@ -1,186 +1,184 @@
 class User < ApplicationRecord
-  include CloudinaryHelper
-
-  attr_accessor :scholar_email, :new_note, :quick_match, :mentorship_note, :note_for_current_role, :add_mentor, :add_mentee, :user_status, :toggle_mentorship, :pro, :merge_user_id, :add_credits, :remove_credits, :add_org_credits, :remove_org_credits
-
+  include(CloudinaryHelper)
+  attr_accessor(:scholar_email, :new_note, :quick_match, :mentorship_note, :note_for_current_role, :add_mentor, :add_mentee, :user_status, :toggle_mentorship, :pro, :merge_user_id, :add_credits, :remove_credits, :add_org_credits, :remove_org_credits)
   rolify
-  include AlgoliaSearch
-  include Storext.model
-
+  include(AlgoliaSearch)
+  include(Storext.model)
   acts_as_followable
   acts_as_follower
+  belongs_to(:organization, optional: true)
+  has_many(:api_secrets, dependent: :destroy)
+  has_many(:articles, dependent: :destroy)
+  has_many(:badge_achievements, dependent: :destroy)
+  has_many(:badges, through: :badge_achievements)
+  has_many(:collections, dependent: :destroy)
+  has_many(:comments, dependent: :destroy)
+  has_many(:email_messages, class_name: "Ahoy::Message")
+  has_many(:github_repos, dependent: :destroy)
+  has_many(:identities, dependent: :destroy)
+  has_many(:mentions, dependent: :destroy)
+  has_many(:messages, dependent: :destroy)
+  has_many(:notes, as: :noteable, inverse_of: :noteable)
+  has_many(:authored_notes, as: :author, inverse_of: :author, class_name: "Note")
+  has_many(:notifications, dependent: :destroy)
+  has_many(:reactions, dependent: :destroy)
+  has_many(:tweets, dependent: :destroy)
+  has_many(:chat_channel_memberships, dependent: :destroy)
+  has_many(:chat_channels, through: :chat_channel_memberships)
+  has_many(:push_notification_subscriptions, dependent: :destroy)
+  has_many(:feedback_messages)
+  has_many(:rating_votes)
+  has_many(:html_variants, dependent: :destroy)
+  has_many(:page_views)
+  has_many(:credits)
+  has_many(:mentor_relationships_as_mentee, class_name: "MentorRelationship", foreign_key: "mentee_id", inverse_of: :mentee)
+  has_many(:mentor_relationships_as_mentor, class_name: "MentorRelationship", foreign_key: "mentor_id", inverse_of: :mentor)
+  has_many(:mentors, through: :mentor_relationships_as_mentee, source: :mentor)
+  has_many(:mentees, through: :mentor_relationships_as_mentor, source: :mentee)
+  mount_uploader(:profile_image, ProfileImageUploader)
+  devise(:omniauthable, :rememberable, :registerable, :database_authenticatable, :confirmable)
+  validates(:email, length: {
+    maximum: 50,
+  }, email: true, allow_nil: true)
+  validates(:email, uniqueness: {
+    allow_nil: true,
+    case_sensitive: false,
+  }, if: :email_changed?)
+  validates(:name, length: {
+    minimum: 1,
+    maximum: 100,
+  })
+  validates(:username, presence: true, format: {
+    with: /\A[a-zA-Z0-9_]+\Z/,
+  }, length: {
+    in: 2..30,
+  }, exclusion: {
+    in: ReservedWords.all,
+    message: "username is reserved",
+  })
+  validates(:username, uniqueness: {
+    case_sensitive: false,
+  }, if: :username_changed?)
+  validates(:twitter_username, uniqueness: {
+    allow_nil: true,
+  }, if: :twitter_username_changed?)
+  validates(:github_username, uniqueness: {
+    allow_nil: true,
+  }, if: :github_username_changed?)
+  validates(:experience_level, numericality: {
+    less_than_or_equal_to: 10,
+  }, allow_blank: true)
+  validates(:text_color_hex, format: /\A#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})\z/, allow_blank: true)
+  validates(:bg_color_hex, format: /\A#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})\z/, allow_blank: true)
+  validates(:website_url, :employer_url, :mastodon_url, url: {
+    allow_blank: true,
+    no_local: true,
+    schemes: %w[https http],
+  })
+  validates(:facebook_url, format: /\A(http(s)?:\/\/)?(www.facebook.com|facebook.com)\/.*\Z/, allow_blank: true)
+  validates(:stackoverflow_url, allow_blank: true, format: /\A(http(s)?:\/\/)?(www.stackoverflow.com|stackoverflow.com|www.stackexchange.com|stackexchange.com)\/.*\Z/)
+  validates(:behance_url, allow_blank: true, format: /\A(http(s)?:\/\/)?(www.behance.net|behance.net)\/.*\Z/)
+  validates(:linkedin_url, allow_blank: true, format: /\A(http(s)?:\/\/)?(www.linkedin.com|linkedin.com|[A-Za-z]{2}.linkedin.com)\/.*\Z/)
+  validates(:dribbble_url, allow_blank: true, format: /\A(http(s)?:\/\/)?(www.dribbble.com|dribbble.com)\/.*\Z/)
+  validates(:medium_url, allow_blank: true, format: /\A(http(s)?:\/\/)?(www.medium.com|medium.com)\/.*\Z/)
+  validates(:gitlab_url, allow_blank: true, format: /\A(http(s)?:\/\/)?(www.gitlab.com|gitlab.com)\/.*\Z/)
+  validates(:twitch_url, allow_blank: true, format: /\A(http(s)?:\/\/)?(www.twitch.tv|twitch.tv)\/.*\Z/)
+  validates(:shirt_gender, inclusion: {
+    in: %w[unisex womens],
+    message: "%{value} is not a valid shirt style",
+  }, allow_blank: true)
+  validates(:shirt_size, inclusion: {
+    in: %w[xs s m l xl 2xl 3xl 4xl],
+    message: "%{value} is not a valid size",
+  }, allow_blank: true)
+  validates(:tabs_or_spaces, inclusion: {
+    in: %w[tabs spaces],
+    message: "%{value} is not a valid answer",
+  }, allow_blank: true)
+  validates(:editor_version, inclusion: {
+    in: %w[v1 v2],
+    message: "%{value} must be either v1 or v2",
+  })
+  validates(:config_theme, inclusion: {
+    in: %w[default night_theme pink_theme],
+    message: "%{value} must be either default, pink theme, or night theme",
+  })
+  validates(:config_font, inclusion: {
+    in: %w[default sans_serif comic_sans],
+    message: "%{value} must be either default or sans serif",
+  })
+  validates(:shipping_country, length: {
+    in: 2..2,
+  }, allow_blank: true)
+  validates(:website_url, :employer_name, :employer_url, length: {
+    maximum: 100,
+  })
+  validates(:employment_title, :education, :location, length: {
+    maximum: 100,
+  })
+  validates(:mostly_work_with, :currently_learning, :currently_hacking_on, :available_for, length: {
+    maximum: 500,
+  })
+  validates(:mentee_description, :mentor_description, length: {
+    maximum: 1000,
+  })
+  validates(:inbox_type, inclusion: {
+    in: %w[open private],
+  })
+  validates(:currently_streaming_on, inclusion: {
+    in: %w[twitch],
+  }, allow_nil: true)
+  validate(:conditionally_validate_summary)
+  validate(:validate_mastodon_url)
+  validate(:validate_feed_url, if: :feed_url_changed?)
+  validate(:unique_including_orgs, if: :username_changed?)
+  scope(:dev_account, -> { find_by(id: ApplicationConfig["DEVTO_USER_ID"]) })
+  after_create(:send_welcome_notification)
+  after_save(:bust_cache)
+  after_save(:subscribe_to_mailchimp_newsletter)
+  after_save(:conditionally_resave_articles)
+  after_create(:estimate_default_language!)
+  before_create(:set_default_language)
+  before_update(:mentorship_status_update)
+  before_validation(:set_username)
 
-  belongs_to  :organization, optional: true
-  has_many    :api_secrets, dependent: :destroy
-  has_many    :articles, dependent: :destroy
-  has_many    :badge_achievements, dependent: :destroy
-  has_many    :badges, through: :badge_achievements
-  has_many    :collections, dependent: :destroy
-  has_many    :comments, dependent: :destroy
-  has_many    :email_messages, class_name: "Ahoy::Message"
-  has_many    :github_repos, dependent: :destroy
-  has_many    :identities, dependent: :destroy
-  has_many    :mentions, dependent: :destroy
-  has_many    :messages, dependent: :destroy
-  has_many    :notes, as: :noteable, inverse_of: :noteable
-  has_many    :authored_notes, as: :author, inverse_of: :author, class_name: "Note"
-  has_many    :notifications, dependent: :destroy
-  has_many    :reactions, dependent: :destroy
-  has_many    :tweets, dependent: :destroy
-  has_many    :chat_channel_memberships, dependent: :destroy
-  has_many    :chat_channels, through: :chat_channel_memberships
-  has_many    :push_notification_subscriptions, dependent: :destroy
-  has_many    :feedback_messages
-  has_many    :rating_votes
-  has_many    :html_variants, dependent: :destroy
-  has_many    :page_views
-  has_many    :credits
-  has_many :mentor_relationships_as_mentee,
-           class_name: "MentorRelationship", foreign_key: "mentee_id", inverse_of: :mentee
-  has_many :mentor_relationships_as_mentor,
-           class_name: "MentorRelationship", foreign_key: "mentor_id", inverse_of: :mentor
-  has_many :mentors,
-           through: :mentor_relationships_as_mentee,
-           source: :mentor
-  has_many :mentees,
-           through: :mentor_relationships_as_mentor,
-           source: :mentee
-
-  mount_uploader :profile_image, ProfileImageUploader
-
-  devise :omniauthable, :rememberable,
-         :registerable, :database_authenticatable, :confirmable
-  validates :email,
-            length: { maximum: 50 },
-            email: true,
-            allow_nil: true
-  validates :email, uniqueness: { allow_nil: true, case_sensitive: false }, if: :email_changed?
-  validates :name, length: { minimum: 1, maximum: 100 }
-  validates :username,
-            presence: true,
-            format: { with: /\A[a-zA-Z0-9_]+\Z/ },
-            length: { in: 2..30 },
-            exclusion: { in: ReservedWords.all, message: "username is reserved" }
-  validates :username, uniqueness: { case_sensitive: false }, if: :username_changed?
-  validates :twitter_username, uniqueness: { allow_nil: true }, if: :twitter_username_changed?
-  validates :github_username, uniqueness: { allow_nil: true }, if: :github_username_changed?
-  validates :experience_level, numericality: { less_than_or_equal_to: 10 }, allow_blank: true
-  validates :text_color_hex, format: /\A#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})\z/, allow_blank: true
-  validates :bg_color_hex, format: /\A#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})\z/, allow_blank: true
-  validates :website_url, :employer_url, :mastodon_url,
-            url: { allow_blank: true, no_local: true, schemes: %w[https http] }
-  validates :facebook_url,
-            format: /\A(http(s)?:\/\/)?(www.facebook.com|facebook.com)\/.*\Z/,
-            allow_blank: true
-  validates :stackoverflow_url,
-            allow_blank: true,
-            format:
-            /\A(http(s)?:\/\/)?(www.stackoverflow.com|stackoverflow.com|www.stackexchange.com|stackexchange.com)\/.*\Z/
-  validates :behance_url,
-            allow_blank: true,
-            format: /\A(http(s)?:\/\/)?(www.behance.net|behance.net)\/.*\Z/
-  validates :linkedin_url,
-            allow_blank: true,
-            format:
-              /\A(http(s)?:\/\/)?(www.linkedin.com|linkedin.com|[A-Za-z]{2}.linkedin.com)\/.*\Z/
-  validates :dribbble_url,
-            allow_blank: true,
-            format: /\A(http(s)?:\/\/)?(www.dribbble.com|dribbble.com)\/.*\Z/
-  validates :medium_url,
-            allow_blank: true,
-            format: /\A(http(s)?:\/\/)?(www.medium.com|medium.com)\/.*\Z/
-  validates :gitlab_url,
-            allow_blank: true,
-            format: /\A(http(s)?:\/\/)?(www.gitlab.com|gitlab.com)\/.*\Z/
-  validates :twitch_url,
-            allow_blank: true,
-            format: /\A(http(s)?:\/\/)?(www.twitch.tv|twitch.tv)\/.*\Z/
-  validates :shirt_gender,
-            inclusion: { in: %w[unisex womens],
-                         message: "%{value} is not a valid shirt style" },
-            allow_blank: true
-  validates :shirt_size,
-            inclusion: { in: %w[xs s m l xl 2xl 3xl 4xl],
-                         message: "%{value} is not a valid size" },
-            allow_blank: true
-  validates :tabs_or_spaces,
-            inclusion: { in: %w[tabs spaces],
-                         message: "%{value} is not a valid answer" },
-            allow_blank: true
-  validates :editor_version,
-            inclusion: { in: %w[v1 v2],
-                         message: "%{value} must be either v1 or v2" }
-
-  validates :config_theme,
-            inclusion: { in: %w[default night_theme pink_theme],
-                         message: "%{value} must be either default, pink theme, or night theme" }
-  validates :config_font,
-            inclusion: { in: %w[default sans_serif comic_sans],
-                         message: "%{value} must be either default or sans serif" }
-  validates :shipping_country,
-            length: { in: 2..2 },
-            allow_blank: true
-  validates :website_url, :employer_name, :employer_url,
-            length: { maximum: 100 }
-  validates :employment_title, :education, :location,
-            length: { maximum: 100 }
-  validates :mostly_work_with, :currently_learning,
-            :currently_hacking_on, :available_for,
-            length: { maximum: 500 }
-  validates :mentee_description, :mentor_description,
-            length: { maximum: 1000 }
-  validates :inbox_type, inclusion: { in: %w[open private] }
-  validates :currently_streaming_on, inclusion: { in: %w[twitch] }, allow_nil: true
-  validate  :conditionally_validate_summary
-  validate  :validate_mastodon_url
-  validate  :validate_feed_url, if: :feed_url_changed?
-  validate  :unique_including_orgs, if: :username_changed?
-
-  scope :dev_account, -> { find_by(id: ApplicationConfig["DEVTO_USER_ID"]) }
-
-  after_create :send_welcome_notification
-  after_save  :bust_cache
-  after_save  :subscribe_to_mailchimp_newsletter
-  after_save  :conditionally_resave_articles
-  after_create :estimate_default_language!
-  before_create :set_default_language
-  before_update :mentorship_status_update
-  before_validation :set_username
   # make sure usernames are not empty, to be able to use the database unique index
-  before_validation :verify_twitter_username, :verify_github_username, :verify_email, :verify_twitch_username
-  before_validation :set_config_input
-  before_validation :downcase_email
-  before_validation :check_for_username_change
-  before_destroy :remove_from_algolia_index
-  before_destroy :destroy_empty_dm_channels
-  before_destroy :destroy_follows
-  before_destroy :unsubscribe_from_newsletters
+  before_validation(:verify_twitter_username, :verify_github_username, :verify_email, :verify_twitch_username)
+  before_validation(:set_config_input)
+  before_validation(:downcase_email)
+  before_validation(:check_for_username_change)
+  before_destroy(:remove_from_algolia_index)
+  before_destroy(:destroy_empty_dm_channels)
+  before_destroy(:destroy_follows)
+  before_destroy(:unsubscribe_from_newsletters)
 
-  algoliasearch per_environment: true, enqueue: :trigger_delayed_index do
-    attribute :name
-    add_index "searchables",
-              id: :index_id,
-              per_environment: true,
-              enqueue: :trigger_delayed_index do
-      attribute :user do
-        { username: user.username,
+  algoliasearch(per_environment: true, enqueue: :trigger_delayed_index) do
+    attribute(:name)
+
+    add_index("searchables", id: :index_id, per_environment: true, enqueue: :trigger_delayed_index) do
+      attribute(:user) do
+        {
+          username: user.username,
           name: user.username,
-          profile_image_90: profile_image_90 }
+          profile_image_90: profile_image_90,
+        }
       end
-      attribute :title, :path, :tag_list, :main_image, :id,
-                :featured, :published, :published_at, :featured_number, :comments_count,
-                :reactions_count, :positive_reactions_count, :class_name, :user_name,
-                :user_username, :comments_blob, :body_text, :tag_keywords_for_search,
-                :search_score, :hotness_score
-      searchableAttributes ["unordered(title)",
-                            "body_text",
-                            "tag_list",
-                            "tag_keywords_for_search",
-                            "user_name",
-                            "user_username",
-                            "comments_blob"]
-      attributesForFaceting [:class_name]
-      customRanking ["desc(search_score)", "desc(hotness_score)"]
+
+      attribute(:title, :path, :tag_list, :main_image, :id, :featured, :published, :published_at, :featured_number, :comments_count, :reactions_count, :positive_reactions_count, :class_name, :user_name, :user_username, :comments_blob, :body_text, :tag_keywords_for_search, :search_score, :hotness_score)
+      searchableAttributes([
+        "unordered(title)",
+        "body_text",
+        "tag_list",
+        "tag_keywords_for_search",
+        "user_name",
+        "user_username",
+        "comments_blob",
+      ])
+      attributesForFaceting([:class_name])
+      customRanking([
+        "desc(search_score)",
+        "desc(hotness_score)",
+      ])
     end
   end
 
@@ -189,6 +187,7 @@ class User < ApplicationRecord
   end
 
   def self.trigger_delayed_index(record, remove)
+
     if remove
       record.delay.remove_from_index! if record&.persisted?
     else
@@ -227,25 +226,17 @@ class User < ApplicationRecord
   end
 
   def followed_articles
-    Article.tagged_with(cached_followed_tag_names, any: true).
-      union(Article.where(user_id: cached_following_users_ids)).
-      where(language: cached_preferred_langs, published: true)
+    Article.tagged_with(cached_followed_tag_names, any: true).union(Article.where(user_id: cached_following_users_ids)).where(language: cached_preferred_langs, published: true)
   end
 
   def cached_following_users_ids
-    Rails.cache.fetch(
-      "user-#{id}-#{updated_at}-#{following_users_count}/following_users_ids",
-      expires_in: 120.hours,
-    ) do
+    Rails.cache.fetch("user-#{id}-#{updated_at}-#{following_users_count}/following_users_ids", expires_in: 120.hours) do
       Follow.where(follower_id: id, followable_type: "User").limit(150).pluck(:followable_id)
     end
   end
 
   def cached_following_organizations_ids
-    Rails.cache.fetch(
-      "user-#{id}-#{updated_at}-#{following_orgs_count}/following_organizations_ids",
-      expires_in: 120.hours,
-    ) do
+    Rails.cache.fetch("user-#{id}-#{updated_at}-#{following_orgs_count}/following_organizations_ids", expires_in: 120.hours) do
       Follow.where(follower_id: id, followable_type: "Organization").limit(150).pluck(:followable_id)
     end
   end
@@ -258,6 +249,7 @@ class User < ApplicationRecord
 
   # handles both old (prefer_language_*) and new (Array of language codes) formats
   def preferred_languages_array
+
     # return @prefer_languages_array if defined? @preferred_languages_array
     return @preferred_languages_array if defined?(@preferred_languages_array)
 
@@ -265,11 +257,14 @@ class User < ApplicationRecord
       @preferred_languages_array = language_settings["preferred_languages"].to_a
     else
       languages = []
+
       language_settings.keys.each do |setting|
         languages << setting.split("prefer_language_")[1] if language_settings[setting] && setting.include?("prefer_language_")
       end
+
       @preferred_languages_array = languages
     end
+
     @preferred_languages_array
   end
 
@@ -283,23 +278,19 @@ class User < ApplicationRecord
 
   def cached_followed_tag_names
     cache_name = "user-#{id}-#{updated_at}/followed_tag_names"
+
     Rails.cache.fetch(cache_name, expires_in: 24.hours) do
-      Tag.where(
-        id: Follow.where(
-          follower_id: id,
-          followable_type: "ActsAsTaggableOn::Tag",
-        ).pluck(:followable_id),
-      ).pluck(:name)
+      Tag.where(id: Follow.where(follower_id: id, followable_type: "ActsAsTaggableOn::Tag").pluck(:followable_id)).pluck(:name)
     end
   end
 
   # methods for Administrate field
   def banned
-    has_role? :banned
+    has_role?(:banned)
   end
 
   def warned
-    has_role? :warned
+    has_role?(:warned)
   end
 
   def banished?
@@ -307,7 +298,7 @@ class User < ApplicationRecord
   end
 
   def banned_from_mentorship
-    has_role? :banned_from_mentorship
+    has_role?(:banned_from_mentorship)
   end
 
   def admin?
@@ -324,7 +315,7 @@ class User < ApplicationRecord
 
   def trusted
     Rails.cache.fetch("user-#{id}/has_trusted_role", expires_in: 200.hours) do
-      has_role? :trusted
+      has_role?(:trusted)
     end
   end
 
@@ -334,7 +325,7 @@ class User < ApplicationRecord
   end
 
   def comment_banned
-    has_role? :comment_banned
+    has_role?(:comment_banned)
   end
 
   def workshop_eligible?
@@ -351,21 +342,21 @@ class User < ApplicationRecord
 
   def subscribe_to_mailchimp_newsletter
     return unless email.present? && email.include?("@")
-
     return if saved_changes["unconfirmed_email"] && saved_changes["confirmation_sent_at"]
 
     # This is when user is updating their email. There
     # is no need to update mailchimp until email is confirmed.
     MailchimpBot.new(self).upsert
   end
-  handle_asynchronously :subscribe_to_mailchimp_newsletter
 
+  handle_asynchronously(:subscribe_to_mailchimp_newsletter)
   def a_sustaining_member?
     monthly_dues.positive?
   end
 
   def resave_articles
     cache_buster = CacheBuster.new
+
     articles.find_each do |article|
       cache_buster.bust(article.path) if article.path
       cache_buster.bust(article.path + "?i=i") if article.path
@@ -374,15 +365,7 @@ class User < ApplicationRecord
   end
 
   def settings_tab_list
-    tab_list = %w[
-      Profile
-      Mentorship
-      Integrations
-      Notifications
-      Publishing\ from\ RSS
-      Organization
-      Billing
-    ]
+    tab_list = %w[Profile Mentorship Integrations Notifications Publishing\ from\ RSS Organization Billing]
     tab_list << "Membership" if monthly_dues&.positive? && stripe_id_code
     tab_list << "Switch Organizations" if has_role?(:switch_between_orgs)
     tab_list.push("Account", "Misc")
@@ -447,10 +430,10 @@ class User < ApplicationRecord
 
   def set_temp_username
     self.username = if temp_name_exists?
-                      temp_username + "_" + rand(100).to_s
-                    else
-                      temp_username
-                    end
+      temp_username + "_" + rand(100).to_s
+    else
+      temp_username
+    end
   end
 
   def temp_name_exists?
@@ -476,13 +459,14 @@ class User < ApplicationRecord
 
   def check_for_username_change
     return unless username_changed?
-
     self.old_old_username = old_username
     self.old_username = username_was
+
     chat_channels.find_each do |c|
       c.slug = c.slug.gsub(username_was, username)
       c.save
     end
+
     articles.find_each do |a|
       a.path = a.path.gsub(username_was, username)
       a.save
@@ -497,38 +481,28 @@ class User < ApplicationRecord
     CacheBuster.new.bust("/#{username}")
     CacheBuster.new.bust("/feed/#{username}")
   end
-  handle_asynchronously :bust_cache
 
+  handle_asynchronously(:bust_cache)
   def core_profile_details_changed?
-    saved_change_to_username? ||
-      saved_change_to_name? ||
-      saved_change_to_summary? ||
-      saved_change_to_bg_color_hex? ||
-      saved_change_to_text_color_hex? ||
-      saved_change_to_profile_image? ||
-      saved_change_to_github_username? ||
-      saved_change_to_twitter_username?
+    saved_change_to_username? || saved_change_to_name? || saved_change_to_summary? || saved_change_to_bg_color_hex? || saved_change_to_text_color_hex? || saved_change_to_profile_image? || saved_change_to_github_username? || saved_change_to_twitter_username?
   end
 
   def conditionally_validate_summary
+
     # Grandfather people who had a too long summary before.
     return if summary_was && summary_was.size > 200
-
     errors.add(:summary, "is too long.") if summary.present? && summary.size > 200
   end
 
   def validate_feed_url
     return if feed_url.blank?
-
     errors.add(:feed_url, "is not a valid rss feed") unless RssReader.new.valid_feed_url?(feed_url)
   end
 
   def validate_mastodon_url
     return if mastodon_url.blank?
-
     uri = URI.parse(mastodon_url)
     return if uri.host&.in?(Constants::ALLOWED_MASTODON_INSTANCES)
-
     errors.add(:mastodon_url, "is not an allowed Mastodon instance")
   end
 
@@ -537,10 +511,11 @@ class User < ApplicationRecord
   end
 
   def tag_list
-    "" # Unused but necessary for search index
+    ""
   end
 
-  def main_image; end
+  def main_image
+  end
 
   def featured
     true
@@ -550,9 +525,11 @@ class User < ApplicationRecord
     true
   end
 
-  def published_at; end
+  def published_at
+  end
 
-  def featured_number; end
+  def featured_number
+  end
 
   def positive_reactions_count
     reactions_count
@@ -575,11 +552,11 @@ class User < ApplicationRecord
   end
 
   def comments_blob
-    "" # Unused but necessary for search index
+    ""
   end
 
   def body_text
-    "" # Unused but necessary for search index
+    ""
   end
 
   def tag_keywords_for_search
@@ -597,11 +574,8 @@ class User < ApplicationRecord
   end
 
   def destroy_empty_dm_channels
-    return if chat_channels.empty? ||
-      chat_channels.where(channel_type: "direct").empty?
-
-    empty_dm_channels = chat_channels.where(channel_type: "direct").
-      select { |chat_channel| chat_channel.messages.empty? }
+    return if chat_channels.empty? || chat_channels.where(channel_type: "direct").empty?
+    empty_dm_channels = chat_channels.where(channel_type: "direct").select { |chat_channel| chat_channel.messages.empty? }
     empty_dm_channels.destroy_all
   end
 
@@ -613,7 +587,6 @@ class User < ApplicationRecord
 
   def mentorship_status_update
     self.mentor_form_updated_at = Time.current if mentor_description_changed? || offering_mentorship_changed?
-
     self.mentee_form_updated_at = Time.current if mentee_description_changed? || seeking_mentorship_changed?
   end
 end

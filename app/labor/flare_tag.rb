@@ -1,16 +1,5 @@
 class FlareTag
-  FLARES = %w[explainlikeimfive
-              ama
-              techtalks
-              help
-              news
-              healthydebate
-              showdev
-              challenge
-              anonymous
-              hiring
-              discuss].freeze
-
+  FLARES = %w[explainlikeimfive ama techtalks help news healthydebate showdev challenge anonymous hiring discuss].freeze
   def initialize(article, except_tag = nil)
     @article = article.decorate
     @except_tag = except_tag
@@ -25,13 +14,14 @@ class FlareTag
 
   def tag_hash
     return unless tag
-
-    { name: tag.name,
+    {
+      name: tag.name,
       bg_color_hex: tag.bg_color_hex,
-      text_color_hex: tag.text_color_hex }
+      text_color_hex: tag.text_color_hex,
+    }
   end
 
   private
 
-  attr_reader :article, :except_tag
+  attr_reader(:article, :except_tag)
 end

@@ -1,28 +1,27 @@
 class GithubReposController < ApplicationController
-  after_action :verify_authorized
-
+  after_action(:verify_authorized)
   def create
-    authorize GithubRepo
+    authorize(GithubRepo)
     @client = create_octokit_client
     @repo = GithubRepo.find_or_create(fetched_repo_params)
     current_user.touch(:github_repos_updated_at)
+
     if @repo.valid?
-      redirect_to "/settings/integrations", notice: "GitHub repo added"
+      redirect_to("/settings/integrations", notice: "GitHub repo added")
     else
-      redirect_to "/settings/integrations",
-                  error: "There was an error adding your Github repo"
+      redirect_to("/settings/integrations", error: "There was an error adding your Github repo")
     end
   end
 
   def update
     @repo = GithubRepo.find(params[:id])
     current_user.touch(:github_repos_updated_at)
-    authorize @repo
+    authorize(@repo)
+
     if @repo.update(featured: false)
-      redirect_to "/settings/integrations", notice: "GitHub repo added"
+      redirect_to("/settings/integrations", notice: "GitHub repo added")
     else
-      redirect_to "/settings/integrations",
-                  error: "There was an error removing your Github repo"
+      redirect_to("/settings/integrations", error: "There was an error removing your Github repo")
     end
   end
 
@@ -39,6 +38,7 @@ class GithubReposController < ApplicationController
     fetched_repo = @client.repositories.detect do |repo|
       repo.id == permitted_attributes(GithubRepo)[:github_id_code].to_i
     end
+
     {
       github_id_code: fetched_repo.id,
       user_id: current_user.id,
@@ -51,7 +51,7 @@ class GithubReposController < ApplicationController
       watchers_count: fetched_repo.watchers,
       stargazers_count: fetched_repo.stargazers_count,
       featured: true,
-      info_hash: fetched_repo.to_hash
+      info_hash: fetched_repo.to_hash,
     }
   end
 end

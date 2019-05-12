@@ -24,26 +24,26 @@ class HexComparer
   end
 
   def accent
-    if brightness(1.14**amount).size == 7
-      brightness(1.14**amount)
-    elsif brightness(1.08**amount).size == 7
-      brightness(1.08**amount)
-    elsif brightness(1.06**amount).size == 7
-      brightness(1.06**amount)
-    elsif brightness(0.96**amount).size == 7
-      brightness(0.96**amount)
-    elsif brightness(0.9**amount).size == 7
-      brightness(0.9**amount)
-    elsif brightness(0.8**amount).size == 7
-      brightness(0.8**amount)
-    elsif brightness(0.7**amount).size == 7
-      brightness(0.7**amount)
-    elsif brightness(0.6**amount).size == 7
-      brightness(0.6**amount)
+    if brightness(1.14 ** amount).size == 7
+      brightness(1.14 ** amount)
+    elsif brightness(1.08 ** amount).size == 7
+      brightness(1.08 ** amount)
+    elsif brightness(1.06 ** amount).size == 7
+      brightness(1.06 ** amount)
+    elsif brightness(0.96 ** amount).size == 7
+      brightness(0.96 ** amount)
+    elsif brightness(0.9 ** amount).size == 7
+      brightness(0.9 ** amount)
+    elsif brightness(0.8 ** amount).size == 7
+      brightness(0.8 ** amount)
+    elsif brightness(0.7 ** amount).size == 7
+      brightness(0.7 ** amount)
+    elsif brightness(0.6 ** amount).size == 7
+      brightness(0.6 ** amount)
     end
   end
 
   private
 
-  attr_accessor :hexes, :amount
+  attr_accessor(:hexes, :amount)
 end
